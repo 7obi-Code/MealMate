@@ -1,6 +1,12 @@
-﻿namespace API.Controllers
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace API.Controllers
 {
-    public class OrderController
+    [ApiController]
+    [Route("[controller]")]
+    public class OrderController : ControllerBase
     {
+        [HttpGet()]
+        public void Get();
     }
 }
