@@ -12,6 +12,7 @@
     },
     "https": {
       "commandName": "Project",
+      "launchUrl": "Home",
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "applicationUrl": "https://localhost:7024;http://localhost:5180",
