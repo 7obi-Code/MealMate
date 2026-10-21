@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace APIClient
+namespace DataAccess.Model
 {
-    public class Class1
+    public class Restaurant
     {
+
     }
 }

@@ -4,7 +4,7 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class CustomerController : ControllerBase
+    public class OrdersController : ControllerBase
     {
         [HttpGet()]
         public void Get();

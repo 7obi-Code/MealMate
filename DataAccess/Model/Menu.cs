@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataAccess
+namespace DataAccess.Model
 {
-    public class Class1
+    internal class Menu
     {
     }
 }
