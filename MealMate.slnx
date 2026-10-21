@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="compose.yaml" />
+  </Folder>
   <Project Path="API/API.csproj" Id="a9095a7e-7a49-4a4a-81ed-1c51647d5f6f" />
   <Project Path="APIClient/APIClient.csproj" Id="a556dfac-f5c6-4a4d-91f0-cd67842d4e7b" />
   <Project Path="DataAccess/DataAccess.csproj" Id="9f781a8f-2424-4466-94cc-4afad2d74c02" />

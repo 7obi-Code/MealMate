@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: mealmate-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: mealmate
+      POSTGRES_USER: mealmate_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "127.0.0.1:5432:5432"
+
+    volumes:
+      - mealmate_data:/var/lib/postgresql/data
+
+volumes:
+  mealmate_data:
