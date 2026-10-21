@@ -1,10 +1,11 @@
-﻿@model int
+﻿@page "{id:int}"
+@model Website.Pages.Restaurant.IndexModel
 
 @{
     ViewData["Title"] = "Restaurant";
 }
 
 <div class="container mt-5">
-    <h1>Restaurant @Model</h1>
-    <p>You selected restaurant @Model.</p>
+    <h1>Restaurant @Model.RestaurantId</h1>
+    <p>You selected restaurant @Model.RestaurantId.</p>
 </div>
