@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace DataAccess.Model
 {
-    internal class Menu
+    public class Menu
     {
+        public int MenuId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+
+        public List<FoodCategory> Categories { get; set; } = new();
     }
 }

@@ -44,6 +44,7 @@
     <Compile Include="DAO\BaseDao.cs" />
     <Compile Include="DAO\RestaurantDao.cs" />
     <Compile Include="Interfaces\IFRestaurantDao.cs" />
+    <Compile Include="Model\Menu.cs" />
     <Compile Include="Model\Restaurant.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
