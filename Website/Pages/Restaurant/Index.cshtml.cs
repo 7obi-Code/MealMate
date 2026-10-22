@@ -1,3 +1,5 @@
+
+using APIClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -5,11 +7,24 @@ namespace Website.Pages.Restaurant
 {
     public class IndexModel : PageModel
     {
-        public int RestaurantId { get; private set; }
+        private readonly RestaurantApiClient _restaurantApiClient;
+
+        public DataAccess.Model.Restaurant? Restaurant { get; private set; }
+
+        public IndexModel(RestaurantApiClient restaurantApiClient)
+        {
+            _restaurantApiClient = restaurantApiClient;
+        }
 
         public IActionResult OnGet(int id)
         {
-            RestaurantId = id;
+            Restaurant = _restaurantApiClient.GetRestaurantMenuById(id);
+
+            if (Restaurant == null)
+            {
+                return NotFound();
+            }
+
             return Page();
         }
     }

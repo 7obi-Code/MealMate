@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DataAccess.Model;
+using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -12,7 +14,7 @@ namespace APIClient
 
         RestClient _client = new RestClient(restUrl);
 
-        public Restaurant? GetResaurantMenuById(int restaurantId)
+        public Restaurant? GetRestaurantMenuById(int restaurantId)
         {
             var request = new RestRequest($"{restaurantId}");
 

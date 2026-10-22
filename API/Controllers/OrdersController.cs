@@ -7,6 +7,9 @@ namespace API.Controllers
     public class OrdersController : ControllerBase
     {
         [HttpGet()]
-        public void Get();
+        public IActionResult Get()
+        {
+            return Ok();
+        }
     }
 }

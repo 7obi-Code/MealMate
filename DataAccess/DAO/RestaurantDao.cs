@@ -10,82 +10,159 @@ using System.Threading.Tasks;
 
 namespace DataAccess.DAO
 {
-    public class RestaurantDao : BaseDao, IFRestaurantDao
+    public class RestaurantDao : IFRestaurantDao
     {
-
-        public RestaurantDao(string connectionString) : base(connectionString) { }
-
-        public Restaurant? GetResaurantMenuById(int restaurantId)
+        private readonly List<Restaurant> _restaurants = new()
         {
-            using var connection = CreateConnection();
-
-            try
+            new Restaurant
             {
-                var query = @"SELECT
-                        li.listingId,
-                        li.price,
-                        li.creationTimeStamp,
-                        li.itemInstanceId_fk AS ItemInstanceId,
-                        li.sellerAccountId_fk AS SellerAccountId,
-
-                        af.accountId,
-                        af.userName,
-                        af.surName,
-                        af.email,
-                        af.phoneNo,
-
-                        ii.itemInstanceId,
-                        ii.itemDefinitionId_fk,
-                        ii.accountId_fk AS ItemInstanceAccountId,
-
-                        id.itemDefinitionId,
-                        id.itemName,
-                        id.itemDescription,
-                        id.gameId_fk,
-
-                        g.gameId,
-                        g.gameTitle
-
-                        FROM Listing li
-
-                        LEFT JOIN Account af
-                        ON af.accountId = li.sellerAccountId_fk
-
-                        LEFT JOIN ItemInstance ii
-                        ON ii.itemInstanceId = li.itemInstanceId_fk
-
-                        LEFT JOIN ItemDefinition id
-                        ON id.itemDefinitionId = ii.itemDefinitionId_fk
-
-                        LEFT JOIN Game g
-                        ON g.gameId = id.gameId_fk
-
-                        WHERE li.listingId = @ListingId
-                        AND li.statusId_fk = 1";
-
-                Restaurant? restaurant = connection.Query<Listing, Account, ItemInstance, ItemDefinition, Game, Listing>(
-                            query,
-                            (list, account, itemInstance, itemDef, game) =>
+                RestaurantId = 1,
+                Name = "Pizza Palace",
+                IsAcceptingOrders = true,
+                Menus = new List<Menu>
+                {
+                    new Menu
+                    {
+                        MenuId = 1,
+                        Name = "Main Menu",
+                        IsActive = true,
+                        Categories = new List<FoodCategory>
+                        {
+                            new FoodCategory
                             {
-                                itemDef.Game = game;
-                                itemInstance.ItemDefinition = itemDef;
-                                list.SellerAccount = account;
-                                list.ItemInstance = itemInstance;
-                                return list;
+                                CategoryId = 1,
+                                Name = "Pizza",
+                                FoodItems = new List<FoodItem>
+                                {
+                                    new FoodItem
+                                    {
+                                        FoodItemId = 1,
+                                        Name = "Margherita",
+                                        Description = "Tomato, mozzarella and fresh basil.",
+                                        PreparationMinutes = 12,
+                                        IsAvailable = true,
+                                        Prices = new List<Price>
+                                        {
+                                            new Price
+                                            {
+                                                PriceId = 1,
+                                                Amount = 79,
+                                                ValidFrom = DateTime.UtcNow
+                                            }
+                                        }
+                                    },
+                                    new FoodItem
+                                    {
+                                        FoodItemId = 2,
+                                        Name = "Pepperoni",
+                                        Description = "Tomato, mozzarella and pepperoni.",
+                                        PreparationMinutes = 15,
+                                        IsAvailable = true,
+                                        Prices = new List<Price>
+                                        {
+                                            new Price
+                                            {
+                                                PriceId = 2,
+                                                Amount = 89,
+                                                ValidFrom = DateTime.UtcNow
+                                            }
+                                        }
+                                    }
+                                }
                             },
-                            new { listingId },
-                            splitOn: "accountId,itemInstanceId,itemDefinitionId,gameId"
-                        ).SingleOrDefault();
+                            new FoodCategory
+                            {
+                                CategoryId = 2,
+                                Name = "Drinks",
+                                FoodItems = new List<FoodItem>
+                                {
+                                    new FoodItem
+                                    {
+                                        FoodItemId = 3,
+                                        Name = "Cola",
+                                        Description = "Cold soft drink.",
+                                        PreparationMinutes = 1,
+                                        IsAvailable = true,
+                                        Prices = new List<Price>
+                                        {
+                                            new Price
+                                            {
+                                                PriceId = 3,
+                                                Amount = 25,
+                                                ValidFrom = DateTime.UtcNow
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
 
-                return restaurant;
-            }
-            catch (Exception ex)
+            new Restaurant
             {
-                throw new Exception($"Error while trying to get resturant menu. Error was: '{ex.Message}'", ex);
+                RestaurantId = 2,
+                Name = "Burger Boom",
+                IsAcceptingOrders = true,
+                Menus = new List<Menu>
+                {
+                    new Menu
+                    {
+                        MenuId = 2,
+                        Name = "Main Menu",
+                        IsActive = true,
+                        Categories = new List<FoodCategory>
+                        {
+                            new FoodCategory
+                            {
+                                CategoryId = 3,
+                                Name = "Burgers",
+                                FoodItems = new List<FoodItem>
+                                {
+                                    new FoodItem
+                                    {
+                                        FoodItemId = 4,
+                                        Name = "Classic Burger",
+                                        Description = "Beef patty, lettuce, tomato and sauce.",
+                                        PreparationMinutes = 10,
+                                        IsAvailable = true,
+                                        Prices = new List<Price>
+                                        {
+                                            new Price
+                                            {
+                                                PriceId = 4,
+                                                Amount = 99,
+                                                ValidFrom = DateTime.UtcNow
+                                            }
+                                        }
+                                    },
+                                    new FoodItem
+                                    {
+                                        FoodItemId = 5,
+                                        Name = "Cheeseburger",
+                                        Description = "Beef patty with melted cheese.",
+                                        PreparationMinutes = 12,
+                                        IsAvailable = true,
+                                        Prices = new List<Price>
+                                        {
+                                            new Price
+                                            {
+                                                PriceId = 5,
+                                                Amount = 109,
+                                                ValidFrom = DateTime.UtcNow
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-        }
+        };
 
-
-
+        public Restaurant GetRestaurantMenuById(int restaurantId) => _restaurants.FirstOrDefault(
+                r => r.RestaurantId == restaurantId);
     }
 }

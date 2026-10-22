@@ -9,7 +9,7 @@ namespace DataAccess.Model
     public class Menu
     {
         public int MenuId { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; } = "";
         public bool IsActive { get; set; }
 
         public List<FoodCategory> Categories { get; set; } = new();

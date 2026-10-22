@@ -4,41 +4,24 @@
 @{
     ViewData["Title"] = "Menu";
 
-    var foodItems = new[]
-    {
-        new
-        {
-            Name = "Classic Burger",
-            Description = "Saftig burger med cheddar, salat og husets dressing.",
-            Price = 89.00m,
-            Category = "Burgere",
-            Icon = "🍔"
-        },
-        new
-        {
-            Name = "Margherita",
-            Description = "Sprød pizza med tomat, mozzarella og frisk basilikum.",
-            Price = 79.00m,
-            Category = "Pizza",
-            Icon = "🍕"
-        },
-        new
-        {
-            Name = "Crispy Fries",
-            Description = "Sprøde pommes frites med et strejf af havsalt.",
-            Price = 35.00m,
-            Category = "Tilbehør",
-            Icon = "🍟"
-        }
-    };
+    var restaurant = Model.Restaurant;
+
+    var foodItems = restaurant?.Menus
+        .Where(menu => menu.IsActive)
+        .SelectMany(menu => menu.Categories)
+        .SelectMany(category => category.FoodItems
+            .Where(item => item.IsAvailable)
+            .Select(item => new
+            {
+                item.Name,
+                item.Description,
+                item.PreparationMinutes,
+                item.Prices,
+                Category = category.Name
+            }))
+        .ToList() ?? new();
 }
 
-<<<<<<< Updated upstream
-<div class="container mt-5">
-    <h1>Restaurant @Model.RestaurantId</h1>
-    <p>You selected restaurant @Model.RestaurantId.</p>
-</div>
-=======
 <div class="menu-page">
     <div class="menu-header">
         <a asp-page="/Home/Index" class="back-link">
@@ -46,43 +29,71 @@
         </a>
 
         <span class="restaurant-label">FÅRUP SOMMERLAND</span>
-        <h1>Vores menu</h1>
+
+        <h1>@restaurant?.Name</h1>
+
         <p>Find din favorit, og gør dig klar til et lækkert måltid.</p>
     </div>
 
     <div class="menu-toolbar">
-        <span class="menu-count">@foodItems.Length lækre valgmuligheder</span>
-        <span class="restaurant-number">Restaurant @Model.RestaurantId</span>
-    </div>
+        <span class="menu-count">
+            @foodItems.Count lækre valgmuligheder
+        </span>
 
-    <div class="food-grid">
-        @foreach (var item in foodItems)
+        @if (restaurant != null && !restaurant.IsAcceptingOrders)
         {
-            <article class="food-card">
-                <div class="food-image">
-                    <span class="food-emoji">@item.Icon</span>
-                    <span class="food-category">@item.Category</span>
-                </div>
-
-                <div class="food-content">
-                    <h2>@item.Name</h2>
-                    <p>@item.Description</p>
-
-                    <div class="food-footer">
-                        <span class="food-price">
-                            @item.Price.ToString("0.00") kr.
-                        </span>
-
-                        <button type="button"
-                                class="add-button"
-                                onclick="alert('Kurven implementeres senere')">
-                            + Tilføj
-                        </button>
-                    </div>
-                </div>
-            </article>
+            <span class="restaurant-number">
+                Restauranten modtager ikke bestillinger lige nu
+            </span>
         }
     </div>
+
+    @if (foodItems.Count == 0)
+    {
+        <p>Der er ingen tilgængelige retter på menuen lige nu.</p>
+    }
+    else
+    {
+        <div class="food-grid">
+            @foreach (var item in foodItems)
+            {
+                var currentPrice = item.Prices
+                    .OrderByDescending(price => price.ValidFrom)
+                    .FirstOrDefault();
+
+                <article class="food-card">
+                    <div class="food-image">
+                        <span class="food-emoji">🍽️</span>
+                        <span class="food-category">@item.Category</span>
+                    </div>
+
+                    <div class="food-content">
+                        <h2>@item.Name</h2>
+                        <p>@item.Description</p>
+
+                        <div class="food-footer">
+                            <span class="food-price">
+                                @if (currentPrice != null)
+                                {
+                                    @($"{currentPrice.Amount:0.00} kr.")
+                                }
+                                else
+                                {
+                                    <text>Pris ikke tilgængelig</text>
+                                }
+                            </span>
+
+                            <button type="button"
+                                    class="add-button"
+                                    onclick="alert('Kurven implementeres senere')">
+                                + Tilføj
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
 </div>
 
 <style>
@@ -106,9 +117,9 @@
         font-weight: 600;
     }
 
-        .back-link:hover {
-            text-decoration: underline;
-        }
+    .back-link:hover {
+        text-decoration: underline;
+    }
 
     .restaurant-label {
         color: #47815a;
@@ -162,10 +173,10 @@
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-        .food-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 28px rgba(24, 48, 30, 0.12);
-        }
+    .food-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(24, 48, 30, 0.12);
+    }
 
     .food-image {
         min-height: 155px;
@@ -198,20 +209,20 @@
         padding: 1.25rem;
     }
 
-        .food-content h2 {
-            font-size: 1.25rem;
-            font-weight: 750;
-            color: #24382a;
-            margin: 0 0 0.5rem;
-        }
+    .food-content h2 {
+        font-size: 1.25rem;
+        font-weight: 750;
+        color: #24382a;
+        margin: 0 0 0.5rem;
+    }
 
-        .food-content p {
-            min-height: 3rem;
-            color: #68736b;
-            font-size: 0.92rem;
-            line-height: 1.5;
-            margin-bottom: 1.25rem;
-        }
+    .food-content p {
+        min-height: 3rem;
+        color: #68736b;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        margin-bottom: 1.25rem;
+    }
 
     .food-footer {
         display: flex;
@@ -237,9 +248,9 @@
         cursor: pointer;
     }
 
-        .add-button:hover {
-            background: #285e39;
-        }
+    .add-button:hover {
+        background: #285e39;
+    }
 
     @@media (max-width: 800px) {
         .food-grid {
@@ -258,4 +269,3 @@
         }
     }
 </style>
->>>>>>> Stashed changes

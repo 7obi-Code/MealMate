@@ -7,6 +7,9 @@ namespace API.Controllers
     public class CustomersController : ControllerBase
     {
         [HttpGet()]
-        public void Get();
+        public IActionResult Get()
+        {
+            return Ok();
+        }
     }
 }
