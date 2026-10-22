@@ -132,7 +132,7 @@ namespace DataAccess.DAO
                                             new Price
                                             {
                                                 PriceId = 4,
-                                                Amount = 99,
+                                                Amount = 9,
                                                 ValidFrom = DateTime.UtcNow
                                             }
                                         }
