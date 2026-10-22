@@ -1,12 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
+using Website.Models;
 
-namespace Website.Controllers
+namespace Website.Controllers;
+
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    public IActionResult Index() => View();
+
+    //Error Handling
+    [Route("/Error")]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    [IgnoreAntiforgeryToken]
+    public IActionResult Error() => View(new ErrorViewModel
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
-    }
+        RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+    });
 }

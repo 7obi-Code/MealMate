@@ -4,9 +4,12 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class OrderController : ControllerBase
+    public class OrdersController : ControllerBase
     {
         [HttpGet()]
-        public void Get();
+        public IActionResult Get()
+        {
+            return Ok();
+        }
     }
 }

@@ -1,0 +1,271 @@
+
+@model DataAccess.Model.Restaurant
+
+@{
+    ViewData["Title"] = "Menu";
+
+    var restaurant = Model;
+
+    var foodItems = restaurant?.Menus
+        .Where(menu => menu.IsActive)
+        .SelectMany(menu => menu.Categories)
+        .SelectMany(category => category.FoodItems
+            .Where(item => item.IsAvailable)
+            .Select(item => new
+            {
+                item.Name,
+                item.Description,
+                item.PreparationMinutes,
+                item.Prices,
+                Category = category.Name
+            }))
+        .ToList() ?? new();
+}
+
+<div class="menu-page">
+    <div class="menu-header">
+        <a asp-controller="Home" asp-action="Index" class="back-link">
+            ← Tilbage til restauranter
+        </a>
+
+        <span class="restaurant-label">FÅRUP SOMMERLAND</span>
+
+        <h1>@restaurant?.Name</h1>
+
+        <p>Find din favorit, og gør dig klar til et lækkert måltid.</p>
+    </div>
+
+    <div class="menu-toolbar">
+        <span class="menu-count">
+            @foodItems.Count lækre valgmuligheder
+        </span>
+
+        @if (restaurant != null && !restaurant.IsAcceptingOrders)
+        {
+            <span class="restaurant-number">
+                Restauranten modtager ikke bestillinger lige nu
+            </span>
+        }
+    </div>
+
+    @if (foodItems.Count == 0)
+    {
+        <p>Der er ingen tilgængelige retter på menuen lige nu.</p>
+    }
+    else
+    {
+        <div class="food-grid">
+            @foreach (var item in foodItems)
+            {
+                var currentPrice = item.Prices
+                    .OrderByDescending(price => price.ValidFrom)
+                    .FirstOrDefault();
+
+                <article class="food-card">
+                    <div class="food-image">
+                        <span class="food-emoji">🍽️</span>
+                        <span class="food-category">@item.Category</span>
+                    </div>
+
+                    <div class="food-content">
+                        <h2>@item.Name</h2>
+                        <p>@item.Description</p>
+
+                        <div class="food-footer">
+                            <span class="food-price">
+                                @if (currentPrice != null)
+                                {
+                                    @($"{currentPrice.Amount:0.00} kr.")
+                                }
+                                else
+                                {
+                                    <text>Pris ikke tilgængelig</text>
+                                }
+                            </span>
+
+                            <button type="button"
+                                    class="add-button"
+                                    onclick="alert('Kurven implementeres senere')">
+                                + Tilføj
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .menu-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2.5rem 1.25rem 4rem;
+    }
+
+    .menu-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .back-link {
+        display: block;
+        width: fit-content;
+        margin-bottom: 2rem;
+        color: #376b49;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+    .restaurant-label {
+        color: #47815a;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+    }
+
+    .menu-header h1 {
+        margin: 0.5rem 0;
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        color: #24382a;
+    }
+
+    .menu-header p {
+        color: #68736b;
+        font-size: 1.05rem;
+    }
+
+    .menu-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+        color: #68736b;
+        font-size: 0.9rem;
+    }
+
+    .restaurant-number {
+        background: #edf4ed;
+        color: #376b49;
+        border-radius: 20px;
+        padding: 0.4rem 0.8rem;
+        font-weight: 600;
+    }
+
+    .food-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.5rem;
+    }
+
+    .food-card {
+        overflow: hidden;
+        border: 1px solid #e7ebe7;
+        border-radius: 18px;
+        background: white;
+        box-shadow: 0 5px 18px rgba(24, 48, 30, 0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .food-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(24, 48, 30, 0.12);
+    }
+
+    .food-image {
+        min-height: 155px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #edf4e9, #faf1df);
+        position: relative;
+    }
+
+    .food-emoji {
+        font-size: 4.5rem;
+    }
+
+    .food-category {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        padding: 0.3rem 0.65rem;
+        background: rgba(255, 255, 255, 0.9);
+        color: #376b49;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .food-content {
+        padding: 1.25rem;
+    }
+
+    .food-content h2 {
+        font-size: 1.25rem;
+        font-weight: 750;
+        color: #24382a;
+        margin: 0 0 0.5rem;
+    }
+
+    .food-content p {
+        min-height: 3rem;
+        color: #68736b;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        margin-bottom: 1.25rem;
+    }
+
+    .food-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .food-price {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #24382a;
+        white-space: nowrap;
+    }
+
+    .add-button {
+        border: 0;
+        border-radius: 10px;
+        background: #36784a;
+        color: white;
+        padding: 0.65rem 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .add-button:hover {
+        background: #285e39;
+    }
+
+    @@media (max-width: 800px) {
+        .food-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 520px) {
+        .food-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .menu-toolbar {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+</style>
