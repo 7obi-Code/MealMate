@@ -1,8 +1,7 @@
-﻿@page
-@model IndexModel
+
 
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Home view";
 }
 
 <!-- Full-screen background -->
@@ -25,7 +24,7 @@
 
             <!-- Pizza Palace -->
             <div class="col-12 col-md-6 col-lg-5">
-                <a asp-page="/Restaurant/Index"
+                <a asp-controller="Restaurant" asp-action="Index"
                    asp-route-id="1"
                    class="restaurant-link">
 
@@ -52,7 +51,7 @@
 
             <!-- Burger Boom -->
             <div class="col-12 col-md-6 col-lg-5">
-                <a asp-page="/Restaurant/Index"
+                <a asp-controller="Restaurant" asp-action="Index"
                    asp-route-id="2"
                    class="restaurant-link">
 

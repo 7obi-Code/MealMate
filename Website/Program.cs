@@ -1,16 +1,8 @@
-
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddSingleton<DataAccess.DAO.RestaurantDao>();
-
-builder.Services.AddScoped<APIClient.RestaurantApiClient>(sp =>
-    new APIClient.RestaurantApiClient(
-        builder.Configuration["ApiSettings:RestaurantUrl"]
-        ?? throw new InvalidOperationException(
-            "ApiSettings:RestaurantUrl is not configured.")));
+builder.Services.AddScoped<APIClient.RestaurantApiClient>(_ => new APIClient.RestaurantApiClient(builder.Configuration["ApiSettings:RestaurantUrl"]));
 
 var app = builder.Build();
 
@@ -30,7 +22,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapControllers();
-app.MapRazorPages()
-   .WithStaticAssets();
 
 app.Run();

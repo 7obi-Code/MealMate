@@ -1,21 +1,26 @@
-﻿
 using APIClient;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Website.Controllers
+namespace Website.Controllers;
+
+public class RestaurantController : Controller
 {
-    public class RestaurantController : Controller
+    private readonly RestaurantApiClient _restaurantApiClient;
+
+    public RestaurantController(RestaurantApiClient restaurantApiClient)
     {
-        private readonly RestaurantApiClient _restaurantApiClient;
+        _restaurantApiClient = restaurantApiClient;
+    }
 
-        public RestaurantController(RestaurantApiClient restaurantApiClient)
+    [HttpGet]
+    public IActionResult Index(int id)
+    {
+        var restaurant = _restaurantApiClient.GetRestaurantMenuById(id);
+        if (restaurant == null)
         {
-            _restaurantApiClient = restaurantApiClient;
+            return NotFound();
         }
 
-        public IActionResult Index(int id)
-        {
-            return Content($"RestaurantController reached. ID: {id}");
-        }
+        return View(restaurant);
     }
 }

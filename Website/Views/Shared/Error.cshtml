@@ -1,0 +1,18 @@
+@model Website.Models.ErrorViewModel
+@{
+    ViewData["Title"] = "Der opstod en fejl";
+}
+
+<h1>Der opstod en fejl</h1>
+<p>Vi kunne ikke gennemføre din forespørgsel. Prøv igen om lidt.</p>
+<p>
+    <a asp-controller="Home" asp-action="Index">Tilbage til restauranter</a>
+</p>
+
+@if (Model.ShowRequestId)
+{
+    <p>
+        Oplys denne reference, hvis du kontakter os:
+        <code>@Model.RequestId</code>
+    </p>
+}
