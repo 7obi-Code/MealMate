@@ -1,9 +1,10 @@
 
 @model DataAccess.Model.Restaurant
+@using Website.Extensions
+@using Website.Models
 
 @{
     ViewData["Title"] = "Menu";
-
     var restaurant = Model;
 
     var foodItems = restaurant?.Menus
@@ -13,6 +14,7 @@
             .Where(item => item.IsAvailable)
             .Select(item => new
             {
+                item.FoodItemId,
                 item.Name,
                 item.Description,
                 item.PreparationMinutes,
@@ -20,6 +22,13 @@
                 Category = category.Name
             }))
         .ToList() ?? new();
+
+    var cart = Context.Session
+        .GetObject<List<CartItem>>("MealMateCart") ?? new();
+
+    var cartCount = cart.Sum(item => item.Quantity);
+    var cartTotal = cart.Sum(item => item.SubTotal);
+    var cartOpen = Context.Request.Query["cartOpen"] == "true";
 }
 
 <div class="menu-page">
@@ -28,10 +37,17 @@
             ← Tilbage til restauranter
         </a>
 
-        <span class="restaurant-label">FÅRUP SOMMERLAND</span>
+        <div class="menu-topline">
+            <span class="restaurant-label">FÅRUP SOMMERLAND</span>
+
+            <button type="button" class="cart-toggle" id="cartToggle"
+                    aria-controls="cartPanel"
+                    aria-expanded="@(cartOpen ? "true" : "false")">
+                🛒 Kurv (<span id="cartCount">@cartCount</span>)
+            </button>
+        </div>
 
         <h1>@restaurant?.Name</h1>
-
         <p>Find din favorit, og gør dig klar til et lækkert måltid.</p>
     </div>
 
@@ -83,11 +99,26 @@
                                 }
                             </span>
 
-                            <button type="button"
-                                    class="add-button"
-                                    onclick="alert('Kurven implementeres senere')">
-                                + Tilføj
-                            </button>
+                            @if (restaurant != null &&
+                                 restaurant.IsAcceptingOrders &&
+                                 currentPrice != null)
+                            {
+                                <form asp-controller="Cart"
+                                      asp-action="Add"
+                                      method="post">
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden" name="foodItemId"
+                                           value="@item.FoodItemId" />
+                                    <input type="hidden" name="restaurantId"
+                                           value="@restaurant.RestaurantId" />
+                                    <input type="hidden" name="quantity" value="1" />
+
+                                    <button type="submit" class="add-button">
+                                        + Tilføj
+                                    </button>
+                                </form>
+                            }
                         </div>
                     </div>
                 </article>
@@ -95,6 +126,82 @@
         </div>
     }
 </div>
+
+<div class="cart-overlay @(cartOpen ? "is-visible" : "")" id="cartOverlay"></div>
+
+<aside class="cart-panel @(cartOpen ? "is-open" : "")"
+       id="cartPanel" aria-label="Indkøbskurv"
+       aria-hidden="@(!cartOpen ? "true" : "false")">
+
+    <div class="cart-header">
+        <div>
+            <h2>Din indkøbskurv</h2>
+            <span class="cart-subtitle">
+                <span id="panelCartCount">@cartCount</span> varer
+            </span>
+        </div>
+
+        <button type="button" class="cart-close" id="cartClose"
+                aria-label="Luk indkøbskurv">×</button>
+    </div>
+
+    <div class="cart-items" id="cartItems">
+        @if (!cart.Any())
+        {
+            <div class="cart-empty">
+                <span>🛒</span>
+                <h3>Kurven er tom</h3>
+                <p>Tilføj en lækker ret fra menuen.</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in cart)
+            {
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <h3>@item.Name</h3>
+                        <span>@item.UnitPrice.ToString("0.00") kr. pr. stk.</span>
+                        <strong>@item.SubTotal.ToString("0.00") kr.</strong>
+                    </div>
+
+                    <div class="cart-item-actions">
+                        <span>Antal: @item.Quantity</span>
+
+                        <form asp-controller="Cart" asp-action="Remove"
+                              method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="foodItemId"
+                                   value="@item.FoodItemId" />
+                            <input type="hidden" name="restaurantId"
+                                   value="@item.RestaurantId" />
+
+                            <button type="submit" class="remove-button">
+                                Fjern
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="cart-footer">
+        <div class="cart-total">
+            <span>Total</span>
+            <strong id="cartTotal">@cartTotal.ToString("0.00") kr.</strong>
+        </div>
+
+        <button type="button" class="checkout-button"
+                disabled="@(!cart.Any())">
+            Gå til bestilling →
+        </button>
+
+        <p class="checkout-note">
+            Bestillingsfunktionen tilføjes senere.
+        </p>
+    </div>
+</aside>
 
 <style>
     .menu-page {
@@ -111,33 +218,45 @@
     .back-link {
         display: block;
         width: fit-content;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
         color: #376b49;
         text-decoration: none;
         font-weight: 600;
     }
 
-    .back-link:hover {
-        text-decoration: underline;
+    .back-link:hover { text-decoration: underline; }
+
+    .menu-topline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
     }
 
     .restaurant-label {
         color: #47815a;
-        font-size: 0.8rem;
+        font-size: .8rem;
         font-weight: 800;
-        letter-spacing: 0.15em;
+        letter-spacing: .15em;
     }
 
     .menu-header h1 {
-        margin: 0.5rem 0;
+        margin: .5rem 0;
         font-size: clamp(2rem, 5vw, 3rem);
         font-weight: 800;
         color: #24382a;
     }
 
-    .menu-header p {
-        color: #68736b;
-        font-size: 1.05rem;
+    .menu-header p { color: #68736b; }
+
+    .cart-toggle {
+        border: 0;
+        border-radius: 12px;
+        background: #36784a;
+        color: white;
+        padding: .75rem 1rem;
+        font-weight: 700;
+        cursor: pointer;
     }
 
     .menu-toolbar {
@@ -147,14 +266,14 @@
         gap: 1rem;
         margin-bottom: 1.25rem;
         color: #68736b;
-        font-size: 0.9rem;
+        font-size: .9rem;
     }
 
     .restaurant-number {
         background: #edf4ed;
         color: #376b49;
         border-radius: 20px;
-        padding: 0.4rem 0.8rem;
+        padding: .4rem .8rem;
         font-weight: 600;
     }
 
@@ -169,57 +288,51 @@
         border: 1px solid #e7ebe7;
         border-radius: 18px;
         background: white;
-        box-shadow: 0 5px 18px rgba(24, 48, 30, 0.06);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 5px 18px rgba(24, 48, 30, .06);
+        transition: transform .2s ease, box-shadow .2s ease;
     }
 
     .food-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 28px rgba(24, 48, 30, 0.12);
+        box-shadow: 0 12px 28px rgba(24, 48, 30, .12);
     }
 
     .food-image {
         min-height: 155px;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
         background: linear-gradient(135deg, #edf4e9, #faf1df);
         position: relative;
     }
 
-    .food-emoji {
-        font-size: 4.5rem;
-    }
+    .food-emoji { font-size: 4.5rem; }
 
     .food-category {
         position: absolute;
-        top: 0.75rem;
-        left: 0.75rem;
-        padding: 0.3rem 0.65rem;
-        background: rgba(255, 255, 255, 0.9);
+        top: .75rem;
+        left: .75rem;
+        padding: .3rem .65rem;
+        background: rgba(255,255,255,.9);
         color: #376b49;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: .75rem;
         font-weight: 700;
     }
 
-    .food-content {
-        padding: 1.25rem;
-    }
+    .food-content { padding: 1.25rem; }
 
     .food-content h2 {
         font-size: 1.25rem;
         font-weight: 750;
         color: #24382a;
-        margin: 0 0 0.5rem;
+        margin: 0 0 .5rem;
     }
 
     .food-content p {
         min-height: 3rem;
         color: #68736b;
-        font-size: 0.92rem;
+        font-size: .92rem;
         line-height: 1.5;
         margin-bottom: 1.25rem;
     }
@@ -228,7 +341,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 0.5rem;
+        gap: .5rem;
     }
 
     .food-price {
@@ -243,29 +356,212 @@
         border-radius: 10px;
         background: #36784a;
         color: white;
-        padding: 0.65rem 0.9rem;
+        padding: .65rem .9rem;
         font-weight: 700;
         cursor: pointer;
     }
 
-    .add-button:hover {
-        background: #285e39;
+    .add-button:hover { background: #285e39; }
+
+    .cart-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(20, 30, 22, .35);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .25s ease, visibility .25s ease;
+        z-index: 1040;
+    }
+
+    .cart-overlay.is-visible {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .cart-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: min(430px, 100%);
+        height: 100dvh;
+        background: #fff;
+        z-index: 1050;
+        box-shadow: -12px 0 35px rgba(0,0,0,.15);
+        display: flex;
+        flex-direction: column;
+        transform: translateX(105%);
+        transition: transform .25s ease;
+    }
+
+    .cart-panel.is-open { transform: translateX(0); }
+
+    .cart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e7ebe7;
+    }
+
+    .cart-header h2 { margin: 0; color: #24382a; }
+
+    .cart-subtitle {
+        color: #68736b;
+        font-size: .9rem;
+    }
+
+    .cart-close {
+        border: 0;
+        background: #edf4e9;
+        color: #24382a;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 1.7rem;
+        cursor: pointer;
+    }
+
+    .cart-items {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem 1.5rem;
+    }
+
+    .cart-empty {
+        text-align: center;
+        padding: 4rem 1rem;
+        color: #68736b;
+    }
+
+    .cart-empty span { font-size: 3rem; }
+    .cart-empty h3 { color: #24382a; }
+
+    .cart-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #e7ebe7;
+    }
+
+    .cart-item-info h3 {
+        margin: 0 0 .4rem;
+        font-size: 1rem;
+        color: #24382a;
+    }
+
+    .cart-item-info span {
+        display: block;
+        font-size: .85rem;
+        color: #68736b;
+        margin-bottom: .5rem;
+    }
+
+    .cart-item-info strong { color: #24382a; }
+
+    .cart-item-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: .5rem;
+        font-size: .9rem;
+    }
+
+    .remove-button {
+        border: 0;
+        background: transparent;
+        color: #a83232;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+    .cart-footer {
+        border-top: 1px solid #e7ebe7;
+        padding: 1.5rem;
+    }
+
+    .cart-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        color: #24382a;
+        font-size: 1.1rem;
+    }
+
+    .cart-total strong { font-size: 1.35rem; }
+
+    .checkout-button {
+        width: 100%;
+        border: 0;
+        border-radius: 12px;
+        padding: 1rem;
+        background: #36784a;
+        color: white;
+        font-weight: 700;
+    }
+
+    .checkout-button:disabled {
+        background: #aab8ac;
+        cursor: not-allowed;
+    }
+
+    .checkout-note {
+        margin: .75rem 0 0;
+        text-align: center;
+        color: #68736b;
+        font-size: .8rem;
     }
 
     @@media (max-width: 800px) {
-        .food-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
+        .food-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @@media (max-width: 520px) {
-        .food-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .menu-toolbar {
-            align-items: flex-start;
-            flex-direction: column;
-        }
+        .food-grid { grid-template-columns: 1fr; }
+        .menu-toolbar { flex-direction: column; align-items: flex-start; }
+        .menu-topline { align-items: flex-start; }
     }
 </style>
+
+<script>
+    (() => {
+        const panel = document.getElementById("cartPanel");
+        const overlay = document.getElementById("cartOverlay");
+        const toggle = document.getElementById("cartToggle");
+        const close = document.getElementById("cartClose");
+
+        function openCart() {
+            panel.classList.add("is-open");
+            overlay.classList.add("is-visible");
+            panel.setAttribute("aria-hidden", "false");
+            toggle.setAttribute("aria-expanded", "true");
+        }
+
+        function closeCart() {
+            panel.classList.remove("is-open");
+            overlay.classList.remove("is-visible");
+            panel.setAttribute("aria-hidden", "true");
+            toggle.setAttribute("aria-expanded", "false");
+        }
+
+        toggle.addEventListener("click", () => {
+            if (panel.classList.contains("is-open")) {
+                closeCart();
+            } else {
+                openCart();
+            }
+        });
+
+        close.addEventListener("click", closeCart);
+        overlay.addEventListener("click", closeCart);
+
+        if (new URLSearchParams(window.location.search).get("cartOpen") === "true") {
+            openCart();
+        }
+
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") closeCart();
+        });
+    })();
+</script>
