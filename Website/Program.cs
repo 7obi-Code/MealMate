@@ -2,6 +2,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
+
 builder.Services.AddScoped<APIClient.RestaurantApiClient>(_ => new APIClient.RestaurantApiClient(builder.Configuration["ApiSettings:RestaurantUrl"]));
 
 var app = builder.Build();
@@ -14,6 +17,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseSession();
 app.UseAuthorization();
 
 app.MapStaticAssets();
