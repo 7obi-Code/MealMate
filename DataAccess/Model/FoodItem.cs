@@ -15,6 +15,7 @@ namespace DataAccess.Model
         public bool IsAvailable { get; set; }
 
         public Price? Price { get; set; }
+        public List<Price> Prices { get; internal set; }
     }
 }
 

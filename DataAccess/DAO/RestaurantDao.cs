@@ -1,62 +1,46 @@
-﻿using DataAccess.Interfaces;
+﻿using Dapper;
+using DataAccess.Interfaces;
 using DataAccess.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataAccess.DAO
 {
-    public class RestaurantDao : IFRestaurantDao
+    public class RestaurantDao : BaseDao, IFRestaurantDao
     {
         private readonly IFMenuDao _menuDao;
 
-        public RestaurantDao(IFMenuDao menuDao)
+        public RestaurantDao(
+            string connectionString,
+            IFMenuDao menuDao)
+            : base(connectionString)
         {
             _menuDao = menuDao;
         }
 
         public Restaurant? GetRestaurantMenuById(int restaurantId)
         {
-            var restaurant = _restaurants.FirstOrDefault(
-                restaurant => restaurant.RestaurantId == restaurantId);
+            using var connection = CreateConnection();
 
-            if (restaurant != null)
-            {
-                restaurant.Menus =
-                    _menuDao.GetMenusByRestaurantId(restaurantId);
-            }
+            const string sql = """
+    SELECT
+        "restaurantId" AS "RestaurantId",
+        "name" AS "Name",
+        "isAcceptingOrders" AS "IsAcceptingOrders"
+    FROM mealmate_v1."Restaurant"
+    WHERE "restaurantId" = @RestaurantId;
+    """;
+
+            var restaurant = connection.QuerySingleOrDefault<Restaurant>(
+                sql,
+                new { RestaurantId = restaurantId }
+            );
+
+            if (restaurant == null)
+                return null;
+
+            restaurant.Menus =
+                _menuDao.GetMenusByRestaurantId(restaurantId);
 
             return restaurant;
         }
-
-
-        private readonly List<Restaurant> _restaurants = new()
-        {
-            new Restaurant
-            {
-                RestaurantId = 1,
-                Name = "Pizza Palace",
-                IsAcceptingOrders = true,
-                Menus = new List<Menu>
-                {
-                    
-                }
-            },
-
-            new Restaurant
-            {
-                RestaurantId = 2,
-                Name = "Burger Boom",
-                IsAcceptingOrders = true,
-                Menus = new List<Menu>
-                {
-
-                }
-            }
-        };
     }
 }
