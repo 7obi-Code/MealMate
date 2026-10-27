@@ -50,6 +50,7 @@ namespace DataAccess.DAO
             "foodItemId" AS "FoodItemId",
             "name" AS "Name",
             "description" AS "Description",
+            "isAvailable" AS "IsAvailable"
         FROM mealmate_v1."FoodItem"
         WHERE "categoryId_fk" = @CategoryId;
         """;
