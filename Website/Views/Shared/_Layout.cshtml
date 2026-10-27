@@ -30,11 +30,21 @@
     </nav>
 </header>
 
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+
+<div class="container">
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+</div>
+
+<footer class="site-footer">
+    <a asp-controller="Manager"
+       asp-action="Login"
+       class="manager-button">
+        Manager
+    </a>
+</footer>
+
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

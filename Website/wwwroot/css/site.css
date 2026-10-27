@@ -29,3 +29,30 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+
+/* Footer with Manager button */
+.site-footer {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    margin-top: 2rem;
+}
+
+.manager-button {
+    display: inline-block;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8rem;
+    color: #68736b;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid #d8ded8;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+    .manager-button:hover {
+        color: #24382a;
+        background: #edf4e9;
+        border-color: #b8c9b9;
+    }
