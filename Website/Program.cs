@@ -5,8 +5,12 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
 
-builder.Services.AddScoped<APIClient.RestaurantApiClient>(_ => new APIClient.RestaurantApiClient(builder.Configuration["ApiSettings:RestaurantUrl"]));
+var restaurantUrl = builder.Configuration["ApiSettings:RestaurantUrl"]
+    ?? throw new InvalidOperationException(
+        "ApiSettings:RestaurantUrl mangler i appsettings.json.");
 
+builder.Services.AddScoped<APIClient.RestaurantApiClient>(
+    _ => new APIClient.RestaurantApiClient(restaurantUrl));
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

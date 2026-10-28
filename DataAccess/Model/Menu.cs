@@ -12,8 +12,7 @@ namespace DataAccess.Model
         public int MenuId { get; set; }
         public string Name { get; set; } = string.Empty;
         public bool IsActive { get; set; }
-
-        public List<FoodCategory> FoodCategories { get; set; } = new();
+        public List<FoodCategory> Categories { get; set; } = new();
     }
 }
 
