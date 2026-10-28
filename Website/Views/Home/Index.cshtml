@@ -1,4 +1,4 @@
-
+@model List<DataAccess.Model.Restaurant>
 
 @{
     ViewData["Title"] = "Home view";
@@ -14,71 +14,84 @@
     <div class="welcome-container">
         <div class="welcome-box">
             <h1>Vælg din restaurant</h1>
+            <h2>Find din næste favoritret</h2>
         </div>
     </div>
 
-    <!-- Restaurant cards -->
+    <!-- Restaurants loaded from the database -->
     <div class="container">
         <div class="row justify-content-center g-4">
 
-            <!-- Pizza Palace -->
-            <div class="col-12 col-md-6 col-lg-5">
-                <a asp-controller="Restaurant" asp-action="Index"
-                   asp-route-id="1"
-                   class="restaurant-link">
-
-                    <div class="card restaurant-card h-100 shadow-sm">
-                        <img src="~/images/burgerboom.png"
-                             class="card-img-top restaurant-image"
-                             alt="Burger house restaurant" />
-
-                        <div class="card-body">
-                            <h3 class="card-title">Burger House</h3>
-
-                            <p class="card-text">
-                                Få en saftig burger med sprøde pommes frites.
-                            </p>
-
-                            <span class="btn btn-primary btn-lg">
-                                Vælg restaurant
-                            </span>
-                        </div>
+            @if (Model == null || Model.Count == 0)
+            {
+                <div class="col-12 text-center">
+                    <div class="welcome-box">
+                        <h2>Ingen restauranter fundet</h2>
+                        <p>Der er ingen restauranter at vise lige nu.</p>
                     </div>
+                </div>
+            }
+            else
+            {
+                @foreach (var restaurant in Model)
+                {
+                    <div class="col-12 col-md-6 col-lg-5">
+                        <a asp-controller="Restaurant"
+                           asp-action="Index"
+                           asp-route-id="@restaurant.RestaurantId"
+                           class="restaurant-link">
 
-                </a>
-            </div>
+                            <div class="card restaurant-card h-100 shadow-sm">
 
-            <!-- Burger Boom -->
-            <div class="col-12 col-md-6 col-lg-5">
-                <a asp-controller="Restaurant" asp-action="Index"
-                   asp-route-id="2"
-                   class="restaurant-link">
+                                <div class="restaurant-image-placeholder">
+                                    <span class="restaurant-icon">🍽️</span>
+                                </div>
 
-                    <div class="card restaurant-card h-100 shadow-sm">
-                        <img src="~/images/pizzapalace.png"
-                             class="card-img-top restaurant-image"
-                             alt="Pizza Palace restaurant" />
+                                <div class="card-body">
+                                    <h3 class="card-title">
+                                        @restaurant.Name
+                                    </h3>
 
-                        <div class="card-body">
-                            <h3 class="card-title">Pizza Palace</h3>
+                                    <p class="card-text">
+                                        @if (restaurant.IsAcceptingOrders)
+                                        {
+                                            <span>
+                                                Vi modtager bestillinger.
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span>
+                                                Vi modtager ikke bestillinger
+                                                lige nu.
+                                            </span>
+                                        }
+                                    </p>
 
-                            <p class="card-text">
-                                Nyd lækker pizza i hyggelige omgivelser.
-                            </p>
+                                    @if (restaurant.IsAcceptingOrders)
+                                    {
+                                        <span class="btn btn-primary btn-lg">
+                                            Vælg restaurant
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="btn btn-secondary btn-lg">
+                                            Se restaurant
+                                        </span>
+                                    }
+                                </div>
 
-                            <span class="btn btn-primary btn-lg">
-                                Vælg restaurant
-                            </span>
-                        </div>
+                            </div>
+                        </a>
                     </div>
-
-                </a>
-            </div>
+                }
+            }
 
         </div>
     </div>
-
 </div>
+
 
 <style>
     /* Full-screen background */

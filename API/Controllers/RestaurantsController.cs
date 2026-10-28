@@ -1,8 +1,7 @@
-﻿using DataAccess.DAO;
+﻿
 using DataAccess.Interfaces;
 using DataAccess.Model;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection;
 
 namespace API.Controllers
 {
@@ -15,6 +14,14 @@ namespace API.Controllers
         public RestaurantsController(IFRestaurantDao restaurantDao)
         {
             _restaurantDao = restaurantDao;
+        }
+
+        [HttpGet]
+        public ActionResult<List<Restaurant>> GetAllRestaurants()
+        {
+            var restaurants = _restaurantDao.GetAllRestaurants();
+
+            return Ok(restaurants);
         }
 
         [HttpGet("{restaurantId}")]
