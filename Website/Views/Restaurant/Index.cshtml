@@ -64,6 +64,16 @@
 </header>
 
 <!-- Main menu -->
+@if (TempData["CartWarning"] is string warning)
+{
+    <div id="cartWarningPopup" class="cart-warning-overlay">
+        <div class="cart-warning-popup" role="alert">
+            <div class="cart-warning-icon">⚠️</div>
+            <h2>Hey, vent lige!</h2>
+            <p>@warning</p>
+        </div>
+    </div>
+}
 <main class="menu-page">
 
     <div class="menu-toolbar">
@@ -712,6 +722,76 @@
             padding: 1rem;
         }
     }
+
+    /* Popup når brugeren prøver at blande restauranter i kurven */
+    .cart-warning-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.55);
+        animation: warningFadeIn 0.25s ease;
+    }
+
+    .cart-warning-popup {
+        width: min(450px, 100%);
+        padding: 2rem;
+        border-radius: 20px;
+        background: #fff;
+        color: #24382a;
+        text-align: center;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+        animation: warningPopIn 0.3s ease;
+    }
+
+    .cart-warning-icon {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .cart-warning-popup h2 {
+        margin-bottom: 0.75rem;
+        font-weight: 800;
+    }
+
+    .cart-warning-popup p {
+        margin: 0;
+        line-height: 1.6;
+        color: #555;
+    }
+
+    @@keyframes warningFadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes warningPopIn {
+        from {
+            opacity: 0;
+            transform: scale(0.85);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @@keyframes warningFadeOut {
+        to {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+    }
+
 </style>
 
 <script>
@@ -758,5 +838,14 @@
                 closeCart();
             }
         });
-    })();
+
+            // Luk advarsels-popup efter 3 sekunder
+            const warningPopup = document.getElementById("cartWarningPopup");
+            if (warningPopup) {
+                setTimeout(() => {
+                    warningPopup.style.animation = "warningFadeOut 0.3s ease forwards";
+                    setTimeout(() => warningPopup.remove(), 300);
+                }, 3000);
+            }
+        })();
 </script>
