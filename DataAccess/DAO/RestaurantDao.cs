@@ -1,7 +1,7 @@
-﻿
-using Dapper;
+﻿using Dapper;
 using DataAccess.Interfaces;
 using DataAccess.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,18 +20,26 @@ namespace DataAccess.DAO
         }
         public List<Restaurant> GetAllRestaurants()
         {
-            using var connection = CreateConnection();
+            try
+            {
+                using var connection = CreateConnection();
 
-            const string sql = """
-                SELECT
-                    "restaurantId" AS "RestaurantId",
-                    "name" AS "Name",
-                    "isAcceptingOrders" AS "IsAcceptingOrders"
-                FROM mealmate_v1."Restaurant"
-                ORDER BY "restaurantId";
-                """;
+                const string sql = """
+            SELECT
+                "restaurantId" AS "RestaurantId",
+                "name" AS "Name",
+                "isAcceptingOrders" AS "IsAcceptingOrders"
+            FROM mealmate_v1."Restaurant"
+            ORDER BY "restaurantId";
+            """;
 
-            return connection.Query<Restaurant>(sql).ToList();
+                return connection.Query<Restaurant>(sql).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Databasefejl: {ex.Message}");
+                return new List<Restaurant>();
+            }
         }
 
         public Restaurant? GetRestaurantMenuById(int restaurantId)
