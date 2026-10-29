@@ -13,7 +13,13 @@ namespace DataAccess.DAO
 
         public NpgsqlConnection CreateConnection()
         {
-            return new NpgsqlConnection(ConnectionString);
+            var builder = new NpgsqlConnectionStringBuilder(ConnectionString)
+            {
+                Timeout = 1,
+                CommandTimeout = 1
+            };
+
+            return new NpgsqlConnection(builder.ConnectionString);
         }
     }
 }
