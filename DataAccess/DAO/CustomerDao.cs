@@ -8,9 +8,10 @@ using System.Linq;
 
 namespace DataAccess.DAO
 {
-    public class CustomerDao : BaseDao, IFCustomerDao
+    public class CustomerDao(string connectionString)
+     : BaseDao(connectionString), IFCustomerDao
     {
-        public int CreateCustomer(Customer customer)
+        public int CreateCustomer(Customer customer) 
         {
             using var connection = CreateConnection();
 
