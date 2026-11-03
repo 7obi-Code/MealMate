@@ -1,0 +1,35 @@
+﻿@model List<DataAccess.Model.Restaurant>
+
+@{
+    ViewData["Title"] = "Select Restaurant";
+}
+
+<h2>Select Restaurant</h2>
+
+<p>Choose which restaurant you want to manage.</p>
+
+<div class="row">
+    @foreach (var restaurant in Model)
+    {
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@restaurant.Name</h5>
+
+                    <form asp-controller="Manager"
+                          asp-action="SelectRestaurant"
+                          method="post">
+
+                        <input type="hidden"
+                               name="restaurantId"
+                               value="@restaurant.RestaurantId" />
+
+                        <button type="submit" class="btn btn-primary">
+                            Manage Restaurant
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</div>

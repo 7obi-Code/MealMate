@@ -1,0 +1,335 @@
+﻿
+@{
+    ViewData["Title"] = "Manager Dashboard";
+}
+
+<div class="manager-page">
+
+    <div class="manager-heading">
+        <div>
+            <span class="manager-eyebrow">MEALMATE MANAGEMENT</span>
+            <h1>Manager Dashboard</h1>
+            <p>Manage your restaurant and keep your menu up to date.</p>
+        </div>
+
+        <div class="manager-status">
+            <span class="manager-status-dot"></span>
+            Manager Portal
+        </div>
+    </div>
+
+    <section class="manager-welcome">
+        <div>
+            <h2>Welcome to your dashboard</h2>
+            <p>
+                Manage your restaurant's food items, menu availability,
+                and online ordering settings from one place.
+            </p>
+        </div>
+
+        <div class="manager-welcome-icon">🍽️</div>
+    </section>
+
+    <h2 class="manager-section-title">Restaurant Management</h2>
+
+    <div class="manager-grid">
+
+        <article class="manager-card">
+            <div class="manager-card-icon">🍔</div>
+            <h3>Food Items</h3>
+            <p>
+                Add new dishes, update descriptions and prices,
+                or remove items from your restaurant's menu.
+            </p>
+            <button class="manager-action" type="button" disabled>
+                Manage Food Items <span>→</span>
+            </button>
+            <span class="manager-coming-soon">Coming soon</span>
+        </article>
+
+        <article class="manager-card">
+            <div class="manager-card-icon">📋</div>
+            <h3>Menu Management</h3>
+            <p>
+                Organize your menu into categories and control
+                which menus are currently active.
+            </p>
+            <button class="manager-action" type="button" disabled>
+                Manage Menus <span>→</span>
+            </button>
+            <span class="manager-coming-soon">Coming soon</span>
+        </article>
+
+        <article class="manager-card">
+            <div class="manager-card-icon">🛒</div>
+            <h3>Online Ordering</h3>
+            <p>
+                Control whether customers can place online orders
+                when your restaurant is busy.
+            </p>
+            <button class="manager-action" type="button" disabled>
+                Ordering Settings <span>→</span>
+            </button>
+            <span class="manager-coming-soon">Coming soon</span>
+        </article>
+
+        <article class="manager-card">
+            <div class="manager-card-icon">🏪</div>
+            <h3>Restaurant Details</h3>
+            <p>
+                View and update your restaurant's information
+                and customer-facing details.
+            </p>
+            <button class="manager-action" type="button" disabled>
+                Restaurant Settings <span>→</span>
+            </button>
+            <span class="manager-coming-soon">Coming soon</span>
+        </article>
+
+    </div>
+
+    <div class="manager-note">
+        <span>ℹ️</span>
+        <p>
+            <strong>Manager access:</strong>
+            OpenID Connect authentication and restaurant-specific
+            permissions will be integrated later.
+        </p>
+    </div>
+
+    <div class="manager-back">
+        <a asp-controller="Home" asp-action="Index">
+            ← Back to restaurants
+        </a>
+    </div>
+
+</div>
+
+<style>
+    .manager-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+        color: #24382a;
+    }
+
+    .manager-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .manager-eyebrow {
+        color: #36784a;
+        font-size: .75rem;
+        font-weight: 800;
+        letter-spacing: .15em;
+    }
+
+    .manager-heading h1 {
+        margin: .5rem 0;
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        font-weight: 800;
+    }
+
+    .manager-heading p {
+        margin: 0;
+        color: #68736b;
+    }
+
+    .manager-status {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .65rem 1rem;
+        border: 1px solid #dce8dd;
+        border-radius: 30px;
+        background: #f4f8f3;
+        color: #376b49;
+        font-size: .85rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .manager-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #36784a;
+    }
+
+    .manager-welcome {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 2rem;
+        margin-bottom: 2.5rem;
+        background: linear-gradient(135deg, #234b32, #36784a);
+        border-radius: 20px;
+        color: white;
+        box-shadow: 0 8px 24px rgba(24, 48, 30, .15);
+    }
+
+    .manager-welcome h2 {
+        margin: 0 0 .75rem;
+        font-size: 1.6rem;
+        font-weight: 750;
+    }
+
+    .manager-welcome p {
+        max-width: 650px;
+        margin: 0;
+        line-height: 1.7;
+        color: rgba(255, 255, 255, .85);
+    }
+
+    .manager-welcome-icon {
+        font-size: 4rem;
+        flex-shrink: 0;
+    }
+
+    .manager-section-title {
+        margin-bottom: 1.25rem;
+        font-size: 1.35rem;
+        font-weight: 750;
+    }
+
+    .manager-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+
+    .manager-card {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.5rem;
+        background: white;
+        border: 1px solid #e3e9e3;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(24, 48, 30, .04);
+        transition: box-shadow .2s ease, transform .2s ease;
+    }
+
+    .manager-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(24, 48, 30, .09);
+    }
+
+    .manager-card-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        margin-bottom: 1rem;
+        background: #edf4e9;
+        border-radius: 14px;
+        font-size: 1.6rem;
+    }
+
+    .manager-card h3 {
+        margin: 0 0 .65rem;
+        font-size: 1.15rem;
+        font-weight: 750;
+    }
+
+    .manager-card p {
+        flex: 1;
+        margin: 0 0 1.25rem;
+        color: #68736b;
+        line-height: 1.65;
+    }
+
+    .manager-action {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+        padding: .8rem 1rem;
+        border: 0;
+        border-radius: 9px;
+        background: #edf4e9;
+        color: #376b49;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .manager-action:disabled {
+        opacity: .8;
+        cursor: not-allowed;
+    }
+
+    .manager-action span {
+        font-size: 1.2rem;
+    }
+
+    .manager-coming-soon {
+        margin-top: .65rem;
+        color: #89928a;
+        font-size: .8rem;
+    }
+
+    .manager-note {
+        display: flex;
+        align-items: flex-start;
+        gap: .75rem;
+        margin-top: 2rem;
+        padding: 1rem 1.25rem;
+        background: #f4f7f3;
+        border: 1px solid #e1e9df;
+        border-radius: 12px;
+    }
+
+    .manager-note p {
+        margin: 0;
+        color: #68736b;
+        line-height: 1.6;
+    }
+
+    .manager-note strong {
+        color: #24382a;
+    }
+
+    .manager-back {
+        margin-top: 2rem;
+    }
+
+    .manager-back a {
+        color: #36784a;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .manager-back a:hover {
+        text-decoration: underline;
+    }
+
+    @@media (max-width: 650px) {
+        .manager-page {
+            padding: 1.5rem 1rem 3rem;
+        }
+
+        .manager-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .manager-welcome {
+            padding: 1.5rem;
+        }
+
+        .manager-welcome-icon {
+            display: none;
+        }
+
+        .manager-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
