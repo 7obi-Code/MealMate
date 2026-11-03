@@ -1,0 +1,100 @@
+﻿
+BEGIN;
+
+CREATE SCHEMA IF NOT EXISTS mealmate_v1;
+
+CREATE TABLE IF NOT EXISTS mealmate_v1."PostalCode" (
+    "postalCodeId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "postalCode" VARCHAR(4) NOT NULL UNIQUE,
+    "city" VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS mealmate_v1."AmusementPark" (
+    "parkId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "name" VARCHAR(100) NOT NULL,
+    "streetName" VARCHAR(150) NOT NULL,
+    "streetNumber" VARCHAR(20) NOT NULL,
+    "postalCode_fk" INTEGER NOT NULL,
+
+    FOREIGN KEY ("postalCode_fk")
+        REFERENCES mealmate_v1."PostalCode"("postalCodeId")
+);
+
+CREATE TABLE IF NOT EXISTS mealmate_v1."Customer" (
+    "customerId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "firstName" VARCHAR(100) NOT NULL,
+    "lastName" VARCHAR(100) NOT NULL,
+    "phoneNumber" VARCHAR(30) NOT NULL,
+    "email" VARCHAR(254) NOT NULL,
+    "postalCode_fk" INTEGER NOT NULL,
+
+    FOREIGN KEY ("postalCode_fk")
+        REFERENCES mealmate_v1."PostalCode"("postalCodeId")
+);
+
+CREATE TABLE IF NOT EXISTS mealmate_v1."Restaurant" (
+    "restaurantId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "parkId_fk" INTEGER NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+    "isAcceptingOrders" BOOLEAN NOT NULL DEFAULT TRUE,
+
+    FOREIGN KEY ("parkId_fk")
+        REFERENCES mealmate_v1."AmusementPark"("parkId")
+);
+
+CREATE TABLE IF NOT EXISTS mealmate_v1."OrderingPause" (
+    "pauseId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "restaurantId_fk" INTEGER NOT NULL,
+    "startTime" TIMESTAMPTZ NOT NULL,
+    "endTime" TIMESTAMPTZ NOT NULL,
+    "reason" TEXT,
+
+    FOREIGN KEY ("restaurantId_fk")
+        REFERENCES mealmate_v1."Restaurant"("restaurantId"),
+
+    CHECK ("endTime" > "startTime")
+);
+
+CREATE TABLE IF NOT EXISTS mealmate_v1."Menu" (
+    "menuId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "restaurantId_fk" INTEGER NOT NULL UNIQUE,
+    "name" VARCHAR(100) NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT TRUE,
+
+    FOREIGN KEY ("restaurantId_fk")
+        REFERENCES mealmate_v1."Restaurant"("restaurantId")
+);
+
+CREATE TABLE IF NOT EXISTS mealmate_v1."FoodCategory" (
+    "categoryId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "menuId_fk" INTEGER NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+
+    FOREIGN KEY ("menuId_fk")
+        REFERENCES mealmate_v1."Menu"("menuId")
+);
+
+CREATE TABLE IF NOT EXISTS mealmate_v1."FoodItem" (
+    "foodItemId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "categoryId_fk" INTEGER NOT NULL,
+    "name" VARCHAR(150) NOT NULL,
+    "description" TEXT,
+    "isAvailable" BOOLEAN NOT NULL DEFAULT TRUE,
+
+    FOREIGN KEY ("categoryId_fk")
+        REFERENCES mealmate_v1."FoodCategory"("categoryId")
+);
+
+CREATE TABLE IF NOT EXISTS mealmate_v1."Price" (
+    "priceId" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "foodItemId_fk" INTEGER NOT NULL UNIQUE,
+    "validFrom" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "amount" NUMERIC(10,2) NOT NULL,
+
+    FOREIGN KEY ("foodItemId_fk")
+        REFERENCES mealmate_v1."FoodItem"("foodItemId"),
+
+    CHECK ("amount" >= 0)
+);
+
+COMMIT;

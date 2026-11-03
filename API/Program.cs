@@ -1,3 +1,4 @@
+
 using DataAccess.DAO;
 using DataAccess.Interfaces;
 
@@ -28,6 +29,10 @@ builder.Services.AddScoped<IFRestaurantDao>(services =>
     new RestaurantDao(
         connectionString,
         services.GetRequiredService<IFMenuDao>()));
+
+// Register CustomerDao.
+builder.Services.AddScoped<IFCustomerDao>(
+    _ => new CustomerDao(connectionString));
 
 var app = builder.Build();
 
