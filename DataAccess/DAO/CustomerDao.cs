@@ -43,7 +43,7 @@ namespace DataAccess.DAO
             c.""phoneNumber"" AS PhoneNumber,
             c.""email"" AS Email,
             p.""postalCodeId"" AS PostalCodeId,
-            p.""postalCode"" AS PostalCode,
+            p.""postalCode"" AS Code,
             p.""city"" AS City 
         FROM mealmate_v1.""Customer"" c
         JOIN mealmate_v1.""PostalCode"" p
