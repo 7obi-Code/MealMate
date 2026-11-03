@@ -81,4 +81,17 @@ public class ManagerController : Controller
 
         return View(restaurant);
     }
+
+    [HttpGet("FoodItems")]
+    public IActionResult FoodItems()
+    {
+        var restaurantId = HttpContext.Session.GetInt32("RestaurantId");
+
+        if (restaurantId == null)
+        {
+            return RedirectToAction(nameof(SelectRestaurant));
+        }
+
+        return View();
+    }
 }
