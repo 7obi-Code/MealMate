@@ -1,153 +1,67 @@
-﻿using DataAccess.Interfaces;
+﻿
+using Dapper;
+using DataAccess.Interfaces;
 using DataAccess.Model;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace DataAccess.DAO
 {
-    public class MenuDao : IFMenuDao
+    public class MenuDao : BaseDao, IFMenuDao
     {
+        private readonly IFFoodItemDao _foodItemDao;
 
-        public List<Menu> GetMenusByRestaurantId(int restaurantId) =>
-        _menus
-        .Where(menu => menu.RestaurantId == restaurantId)
-        .ToList();
-
-        private readonly List<Menu> _menus = new()
+        public MenuDao(
+    string connectionString,
+    IFFoodItemDao foodItemDao)
+    : base(connectionString)
         {
-            new Menu
-            {
-                        MenuId = 1,
-                        RestaurantId = 1,
-                        Name = "Main Menu",
-                        IsActive = true,
-                        Categories = new List<FoodCategory>
-                        {
-                            new FoodCategory
-                            {
-                                CategoryId = 1,
-                                Name = "Pizza",
-                                FoodItems = new List<FoodItem>
-                                {
-                                    new FoodItem
-                                    {
-                                        FoodItemId = 1,
-                                        Name = "Margherita",
-                                        Description = "Tomato, mozzarella and fresh basil.",
-                                        PreparationMinutes = 12,
-                                        IsAvailable = true,
-                                        Prices = new List<Price>
-                                        {
-                                            new Price
-                                            {
-                                                PriceId = 1,
-                                                Amount = 79,
-                                                ValidFrom = DateTime.UtcNow
-                                            }
-                                        }
-                                    },
-                                    new FoodItem
-                                    {
-                                        FoodItemId = 2,
-                                        Name = "Pepperoni",
-                                        Description = "Tomato, mozzarella and pepperoni.",
-                                        PreparationMinutes = 15,
-                                        IsAvailable = true,
-                                        Prices = new List<Price>
-                                        {
-                                            new Price
-                                            {
-                                                PriceId = 2,
-                                                Amount = 89,
-                                                ValidFrom = DateTime.UtcNow
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            new FoodCategory
-                            {
-                                CategoryId = 2,
-                                Name = "Drinks",
-                                FoodItems = new List<FoodItem>
-                                {
-                                    new FoodItem
-                                    {
-                                        FoodItemId = 3,
-                                        Name = "Cola",
-                                        Description = "Cold soft drink.",
-                                        PreparationMinutes = 1,
-                                        IsAvailable = true,
-                                        Prices = new List<Price>
-                                        {
-                                            new Price
-                                            {
-                                                PriceId = 3,
-                                                Amount = 25,
-                                                ValidFrom = DateTime.UtcNow
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-            },
+            _foodItemDao = foodItemDao;
+        }
 
-            new Menu
+        public List<Menu> GetMenusByRestaurantId(int restaurantId)
+        {
+            using var connection = CreateConnection();
+
+            const string menuSql = """
+                SELECT
+                    "menuId" AS "MenuId",
+                    "restaurantId_fk" AS "RestaurantId",
+                    "name" AS "Name",
+                    "isActive" AS "IsActive"
+                FROM mealmate_v1."Menu"
+                WHERE "restaurantId_fk" = @RestaurantId;
+                """;
+
+            var menus = connection.Query<Menu>(
+                menuSql,
+                new { RestaurantId = restaurantId }
+            ).ToList();
+
+            foreach (var menu in menus)
             {
-                        MenuId = 2,
-                        RestaurantId = 2,
-                        Name = "Main Menu",
-                        IsActive = true,
-                        Categories = new List<FoodCategory>
-                        {
-                            new FoodCategory
-                            {
-                                CategoryId = 3,
-                                Name = "Burgers",
-                                FoodItems = new List<FoodItem>
-                                {
-                                    new FoodItem
-                                    {
-                                        FoodItemId = 4,
-                                        Name = "Classic Burger",
-                                        Description = "Beef patty, lettuce, tomato and sauce.",
-                                        PreparationMinutes = 10,
-                                        IsAvailable = true,
-                                        Prices = new List<Price>
-                                        {
-                                            new Price
-                                            {
-                                                PriceId = 4,
-                                                Amount = 9,
-                                                ValidFrom = DateTime.UtcNow
-                                            }
-                                        }
-                                    },
-                                    new FoodItem
-                                    {
-                                        FoodItemId = 5,
-                                        Name = "Cheeseburger",
-                                        Description = "Beef patty with melted cheese.",
-                                        PreparationMinutes = 12,
-                                        IsAvailable = true,
-                                        Prices = new List<Price>
-                                        {
-                                            new Price
-                                            {
-                                                PriceId = 5,
-                                                Amount = 109,
-                                                ValidFrom = DateTime.UtcNow
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                const string categorySql = """
+                    SELECT
+                        "categoryId" AS "CategoryId",
+                        "name" AS "Name"
+                    FROM mealmate_v1."FoodCategory"
+                    WHERE "menuId_fk" = @MenuId;
+                    """;
+
+                menu.Categories = connection.Query<FoodCategory>(
+                    categorySql,
+                    new { MenuId = menu.MenuId }
+                ).ToList();
+
+                foreach (var category in menu.Categories)
+                {
+                    category.FoodItems =
+                        _foodItemDao.GetFoodItemsByCategoryId(
+                            category.CategoryId);
+                }
             }
-        };
-    };
-}
 
+            return menus;
+        }
+    }
+}

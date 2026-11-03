@@ -4,6 +4,8 @@
   </Folder>
   <Project Path="API/API.csproj" Id="a9095a7e-7a49-4a4a-81ed-1c51647d5f6f" />
   <Project Path="APIClient/APIClient.csproj" Id="a556dfac-f5c6-4a4d-91f0-cd67842d4e7b" />
+  <Project Path="BusinessLogic.Tests/BusinessLogic.Tests.csproj" Id="06d0f0a1-72ef-4464-b030-4b40dedb66c8" />
+  <Project Path="BusinessLogic/BusinessLogic.csproj" Id="63ce3554-05cb-4671-8f64-f10ea1d60c66" />
   <Project Path="DataAccess/DataAccess.csproj" Id="9f781a8f-2424-4466-94cc-4afad2d74c02" />
   <Project Path="Website/Website.csproj" Id="3302b0dc-8383-4051-95b9-79c4027e6dba" />
 </Solution>

@@ -58,6 +58,19 @@ public class CartController : Controller
         var cart = HttpContext.Session
             .GetObject<List<CartItem>>(CartSessionKey) ?? new();
 
+        // Tjek om kurven allerede indeholder varer fra en anden restaurant
+        if (cart.Any(item => item.RestaurantId != restaurantId))
+        {
+            TempData["CartWarning"] =
+                "Din kurv indeholder allerede varer fra en anden restaurant. " +
+                "Fjern varerne fra kurven, før du vælger en anden restaurant.";
+
+            return RedirectToAction(
+                "Index",
+                "Restaurant",
+                new { id = restaurantId, cartOpen = true });
+        }
+
         var existingItem = cart.FirstOrDefault(item =>
             item.FoodItemId == foodItemId &&
             item.RestaurantId == restaurantId);

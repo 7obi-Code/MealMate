@@ -13,8 +13,7 @@ namespace DataAccess.Model
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public bool IsAvailable { get; set; }
-
-        public Price? Price { get; set; }
+        public List<Price> Prices { get; set; } = new();
     }
 }
 

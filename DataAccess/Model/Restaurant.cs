@@ -14,6 +14,7 @@ namespace DataAccess.Model
 
         public Menu? Menu { get; set; }
         public List<OrderingPause> OrderingPauses { get; set; } = new();
+        public List<Menu> Menus { get; set; } = new();
     }
 }
 

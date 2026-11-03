@@ -10,6 +10,7 @@ namespace DataAccess.Interfaces
 {
     public interface IFRestaurantDao
     {
-        Restaurant GetRestaurantMenuById(int restaurantId);
+        Restaurant? GetRestaurantMenuById(int restaurantId);
+        List<Restaurant> GetAllRestaurants();
     }
 }

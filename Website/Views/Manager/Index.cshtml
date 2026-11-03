@@ -1,0 +1,187 @@
+﻿@{
+    ViewData["Title"] = "Manager Dashboard";
+}
+
+<div class="manager-page">
+
+    <div class="manager-back">
+        <a asp-controller="Home" asp-action="Index">
+            ← Back to restaurant selection
+        </a>
+    </div>
+
+    <div class="manager-heading">
+        <h1>Manager Dashboard</h1>
+    </div>
+
+    <div class="manager-grid">
+
+        <article class="manager-card">
+            <div class="manager-card-icon">🍔</div>
+            <h3>Food Items</h3>
+            <p>
+                Add new dishes, update descriptions and prices,
+                or remove items from your restaurant's menu.
+            </p>
+            <a asp-controller="Manager"
+               asp-action="FoodItems"
+               class="manager-action">
+                Manage Food Items <span>→</span>
+            </a>
+        </article>
+
+        <article class="manager-card">
+            <div class="manager-card-icon">📋</div>
+            <h3>Menu Management</h3>
+            <p>
+                Organize your menu into categories and control
+                which menus are currently active.
+            </p>
+            <button class="manager-action" type="button" disabled>
+                Manage Menus <span>→</span>
+            </button>
+        </article>
+
+        <article class="manager-card">
+            <div class="manager-card-icon">🛒</div>
+            <h3>Online Ordering</h3>
+            <p>
+                Control whether customers can place online orders
+                when your restaurant is busy.
+            </p>
+            <button class="manager-action" type="button" disabled>
+                Ordering Settings <span>→</span>
+            </button>
+        </article>
+
+        <article class="manager-card">
+            <div class="manager-card-icon">🏪</div>
+            <h3>Restaurant Details</h3>
+            <p>
+                View and update your restaurant's information
+                and customer-facing details.
+            </p>
+            <button class="manager-action" type="button" disabled>
+                Restaurant Settings <span>→</span>
+            </button>
+        </article>
+
+    </div>
+</div>
+
+<style>
+    .manager-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+        color: #24382a;
+    }
+
+    .manager-back {
+        margin-top: 2rem;
+    }
+
+        .manager-back a {
+            color: #36784a;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+            .manager-back a:hover {
+                text-decoration: underline;
+            }
+
+    .manager-heading {
+        margin-bottom: 2rem;
+    }
+
+        .manager-heading h1 {
+            margin: .5rem 0;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            font-weight: 800;
+        }
+
+    .manager-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+
+    .manager-card {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.5rem;
+        background: white;
+        border: 1px solid #e3e9e3;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(24, 48, 30, .04);
+        transition: box-shadow .2s ease, transform .2s ease;
+    }
+
+        .manager-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(24, 48, 30, .09);
+        }
+
+    .manager-card-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        margin-bottom: 1rem;
+        background: #edf4e9;
+        border-radius: 14px;
+        font-size: 1.6rem;
+    }
+
+    .manager-card h3 {
+        margin: 0 0 .65rem;
+        font-size: 1.15rem;
+        font-weight: 750;
+    }
+
+    .manager-card p {
+        flex: 1;
+        margin: 0 0 1.25rem;
+        color: #68736b;
+        line-height: 1.65;
+    }
+
+    .manager-action {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+        padding: .8rem 1rem;
+        border: 0;
+        border-radius: 9px;
+        background: #edf4e9;
+        color: #376b49;
+        font-weight: 700;
+        text-align: left;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+        .manager-action:disabled {
+            opacity: .8;
+            cursor: not-allowed;
+        }
+
+        .manager-action span {
+            font-size: 1.2rem;
+        }
+
+    @@media (max-width: 650px) {
+        .manager-page {
+            padding: 1.5rem 1rem 3rem;
+        }
+
+        .manager-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

@@ -1,3 +1,4 @@
+
 using DataAccess.DAO;
 using DataAccess.Interfaces;
 
@@ -7,9 +8,31 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-builder.Services.AddScoped<IFMenuDao, MenuDao>();
-builder.Services.AddScoped<IFRestaurantDao, RestaurantDao>();
-builder.Services.AddScoped<IFCustomerDao, CustomerDao>();
+// Get the database connection string.
+var connectionString = builder.Configuration
+    .GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException(
+        "Connection string 'DefaultConnection' mangler.");
+
+// Register FoodItemDao.
+builder.Services.AddScoped<IFFoodItemDao>(
+    _ => new FoodItemDao(connectionString));
+
+// Register MenuDao and inject FoodItemDao.
+builder.Services.AddScoped<IFMenuDao>(services =>
+    new MenuDao(
+        connectionString,
+        services.GetRequiredService<IFFoodItemDao>()));
+
+// Register RestaurantDao and inject MenuDao.
+builder.Services.AddScoped<IFRestaurantDao>(services =>
+    new RestaurantDao(
+        connectionString,
+        services.GetRequiredService<IFMenuDao>()));
+
+// Register CustomerDao.
+builder.Services.AddScoped<IFCustomerDao>(
+    _ => new CustomerDao(connectionString));
 
 var app = builder.Build();
 
@@ -20,9 +43,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
