@@ -14,6 +14,7 @@ namespace DataAccess.Model
         public string Description { get; set; } = string.Empty;
         public bool IsAvailable { get; set; }
         public List<Price> Prices { get; set; } = new();
+        public int PreparationMinutes { get; set; }
     }
 }
 

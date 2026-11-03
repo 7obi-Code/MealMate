@@ -1,15 +1,162 @@
-﻿@{
+﻿@model DataAccess.Model.Restaurant
+
+@{
     ViewData["Title"] = "Manage Food Items";
 }
 
 <div class="manager-page">
+
     <div class="manager-back">
         <a asp-controller="Manager" asp-action="Index">
             ← Back to Dashboard
         </a>
     </div>
 
-    <h1>Manage Food Items</h1>
+    <div class="manager-heading">
+        <h1>Manage Food Items</h1>
+        <p>@Model.Name</p>
+    </div>
 
-    <p>Manage the food items available in your restaurant.</p>
+    @if (Model.Menus == null || !Model.Menus.Any())
+    {
+        <p>No menus found for this restaurant.</p>
+    }
+    else
+    {
+        @foreach (var menu in Model.Menus)
+        {
+            <section class="food-menu">
+                <h2>@menu.Name</h2>
+
+                @if (menu.Categories == null || !menu.Categories.Any())
+                {
+                    <p>No categories in this menu.</p>
+                }
+                else
+                {
+                    @foreach (var category in menu.Categories)
+                    {
+                        <div class="food-category">
+                            <h3>@category.Name</h3>
+
+                            @if (category.FoodItems == null || !category.FoodItems.Any())
+                            {
+                                <p>No food items in this category.</p>
+                            }
+                            else
+                            {
+                                <div class="food-grid">
+
+                                    @foreach (var item in category.FoodItems)
+                                    {
+                                        <article class="food-card">
+
+                                            <h4>@item.Name</h4>
+
+                                            <p>@item.Description</p>
+
+                                            <p>
+                                                Preparation time:
+                                                @item.PreparationMinutes minutes
+                                            </p>
+
+                                            <p>
+                                                Status:
+                                                @(item.IsAvailable ? "Available" : "Unavailable")
+                                            </p>
+
+                                        </article>
+                                    }
+
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </section>
+        }
+    }
+
 </div>
+
+<style>
+    .manager-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+        color: #24382a;
+    }
+
+    .manager-back {
+        margin-bottom: 2rem;
+    }
+
+        .manager-back a {
+            color: #36784a;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+    .manager-heading {
+        margin-bottom: 2rem;
+    }
+
+        .manager-heading h1 {
+            margin-bottom: .5rem;
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        .manager-heading p {
+            color: #68736b;
+        }
+
+    .food-menu {
+        margin-bottom: 2.5rem;
+    }
+
+        .food-menu h2 {
+            margin-bottom: 1.5rem;
+            font-size: 1.6rem;
+        }
+
+    .food-category {
+        margin-bottom: 2rem;
+    }
+
+        .food-category h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+    .food-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .food-card {
+        padding: 1.5rem;
+        background: white;
+        border: 1px solid #e3e9e3;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(24, 48, 30, .04);
+    }
+
+        .food-card h4 {
+            margin: 0 0 .75rem;
+            font-size: 1.1rem;
+        }
+
+        .food-card p {
+            margin: .5rem 0;
+            color: #68736b;
+            line-height: 1.5;
+        }
+
+    @@media (max-width: 650px) {
+        .food-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

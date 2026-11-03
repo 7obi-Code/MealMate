@@ -92,6 +92,13 @@ public class ManagerController : Controller
             return RedirectToAction(nameof(SelectRestaurant));
         }
 
-        return View();
+        var restaurant = _restaurantApiClient.GetRestaurantMenuById(restaurantId.Value);
+
+        if (restaurant == null)
+        {
+            return NotFound();
+        }
+
+        return View(restaurant);
     }
 }
