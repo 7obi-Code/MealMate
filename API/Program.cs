@@ -9,6 +9,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<IFMenuDao, MenuDao>();
 builder.Services.AddScoped<IFRestaurantDao, RestaurantDao>();
+builder.Services.AddScoped<IFCustomerDao, CustomerDao>();
 
 var app = builder.Build();
 

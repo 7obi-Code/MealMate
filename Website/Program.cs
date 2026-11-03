@@ -6,6 +6,8 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
 
 builder.Services.AddScoped<APIClient.RestaurantApiClient>(_ => new APIClient.RestaurantApiClient(builder.Configuration["ApiSettings:RestaurantUrl"]));
+builder.Services.AddScoped<APIClient.CustomerApiClient>(_ =>
+    new APIClient.CustomerApiClient(builder.Configuration["ApiSettings:CustomerUrl"]));
 
 var app = builder.Build();
 
