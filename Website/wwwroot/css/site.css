@@ -1,3 +1,4 @@
+
 html {
     font-size: 14px;
 }
@@ -61,6 +62,126 @@ body {
         background: #edf4e9;
         border-color: #b8c9b9;
     }
+
+/* Food item buttons */
+.food-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-direction: row;
+    gap: 0.8rem;
+}
+
+    /* Add to cart button */
+    .food-actions .add-button {
+        order: 2;
+        width: auto;
+        flex: 0 0 auto;
+        margin: 0;
+        padding: 0.7rem 1.1rem;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+    /* Customize text button */
+    .food-actions .customize-toggle {
+        order: 1;
+        border: none;
+        background: transparent;
+        color: #36784a;
+        padding: 0.5rem 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: underline;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+        .food-actions .customize-toggle:hover {
+            color: #285e39;
+            background: transparent;
+        }
+
+/* Ingredient dropdown */
+.ingredient-dropdown {
+    margin-top: 1rem;
+    padding: 1.25rem;
+    border: 1px solid #e5e2dc;
+    border-radius: 16px;
+    background: #faf9f6;
+}
+
+    /* IMPORTANT: Hide dropdown until clicked */
+    .ingredient-dropdown.hidden {
+        display: none !important;
+    }
+
+    .ingredient-dropdown:not(.hidden) {
+        display: block;
+    }
+
+/* Ingredient rows */
+.ingredient-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid #e5e2dc;
+}
+
+    .ingredient-row:last-child {
+        border-bottom: none;
+    }
+
+.ingredient-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+    .ingredient-info span {
+        font-weight: 600;
+        color: #24382a;
+    }
+
+    .ingredient-info small {
+        color: #68736b;
+        font-size: 0.85rem;
+    }
+
+.ingredient-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+    .ingredient-controls button {
+        width: 32px;
+        height: 32px;
+        border: 1px solid #d8ded8;
+        border-radius: 50%;
+        background: white;
+        color: #36784a;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+        .ingredient-controls button:hover {
+            background: #edf4e9;
+        }
+
+.ingredient-quantity {
+    min-width: 20px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.no-ingredients {
+    margin: 1rem 0 0;
+    color: #777;
+}
 
 /* Popup ved forsøg på at blande restauranter i kurven */
 .cart-warning-overlay {
