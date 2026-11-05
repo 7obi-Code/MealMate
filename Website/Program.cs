@@ -1,4 +1,5 @@
 
+using APIClient;
 using LobbyLink.Website.OpenIDConnect;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,12 @@ builder.Services.AddScoped<APIClient.RestaurantApiClient>(
 builder.Services.AddScoped<APIClient.CustomerApiClient>(
     _ => new APIClient.CustomerApiClient(
         builder.Configuration["ApiSettings:CustomerUrl"]));
+
+// Register FoodItemApiClient
+builder.Services.AddScoped<FoodItemApiClient>(_ =>
+    new FoodItemApiClient(
+        builder.Configuration["ApiSettings:FoodItemUrl"]!
+    ));
 
 var app = builder.Build();
 

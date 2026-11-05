@@ -1,5 +1,6 @@
 ﻿using APIClient;
 using DataAccess.Model;
+using DataAccess.DTOs;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +13,12 @@ namespace Website.Controllers;
 public class ManagerController : Controller
 {
     private readonly RestaurantApiClient _restaurantApiClient;
+    private readonly FoodItemApiClient _foodItemApiClient;
 
-    public ManagerController(RestaurantApiClient restaurantApiClient)
+    public ManagerController(RestaurantApiClient restaurantApiClient, FoodItemApiClient foodItemApiClient)
     {
         _restaurantApiClient = restaurantApiClient;
+        _foodItemApiClient = foodItemApiClient;
     }
 
     [AllowAnonymous]
@@ -101,4 +104,131 @@ public class ManagerController : Controller
 
         return View(restaurant);
     }
+
+    //Manager Funktion
+    [HttpPost("FoodItems/Create")]
+    [ValidateAntiForgeryToken]
+    public IActionResult CreateFoodItem(CreateFoodItemRequest request)
+    {
+        var restaurantId = HttpContext.Session.GetInt32("RestaurantId");
+
+        if (restaurantId == null)
+        {
+            return RedirectToAction(nameof(SelectRestaurant));
+        }
+
+        var restaurant = _restaurantApiClient.GetRestaurantMenuById(restaurantId.Value);
+
+        if (restaurant == null)
+        {
+            return NotFound();
+        }
+
+        bool categoryExists = restaurant.Menus
+            .SelectMany(m => m.Categories)
+            .Any(c => c.CategoryId == request.CategoryId);
+
+        if (!categoryExists)
+        {
+            return BadRequest("Invalid category.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Name) || request.Amount < 0)
+        {
+            return BadRequest("Invalid food item information.");
+        }
+
+        var result = _foodItemApiClient.CreateFoodItem(request);
+
+        if (result == null)
+        {
+            TempData["Error"] = "Could not create food item.";
+        }
+        else
+        {
+            TempData["Success"] = "Food item created successfully.";
+        }
+
+        return RedirectToAction(nameof(FoodItems));
+    }
+
+    //Manager Funktion
+    [HttpPost("FoodItems/Edit/{foodItemId}")]
+    [ValidateAntiForgeryToken]
+    public IActionResult EditFoodItem(int foodItemId, UpdateFoodItemRequest request)
+    {
+        var restaurantId = HttpContext.Session.GetInt32("RestaurantId");
+
+        if (restaurantId == null)
+        {
+            return RedirectToAction(nameof(SelectRestaurant));
+        }
+
+        var restaurant = _restaurantApiClient.GetRestaurantMenuById(restaurantId.Value);
+
+        if (restaurant == null)
+        {
+            return NotFound();
+        }
+
+        bool foodItemExists = restaurant.Menus
+            .SelectMany(m => m.Categories)
+            .SelectMany(c => c.FoodItems)
+            .Any(f => f.FoodItemId == foodItemId);
+
+        if (!foodItemExists)
+        {
+            return NotFound();
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Name) || request.Amount < 0)
+        {
+            return BadRequest("Invalid food item information.");
+        }
+
+        bool updated = _foodItemApiClient.UpdateFoodItem(foodItemId, request);
+
+        TempData[updated ? "Success" : "Error"] =
+            updated ? "Food item updated successfully." : "Could not update food item.";
+
+        return RedirectToAction(nameof(FoodItems));
+    }
+
+    //Manager Funktion
+    [HttpPost("FoodItems/Delete/{foodItemId}")]
+    [ValidateAntiForgeryToken]
+    public IActionResult DeleteFoodItem(int foodItemId)
+    {
+        var restaurantId = HttpContext.Session.GetInt32("RestaurantId");
+
+        if (restaurantId == null)
+        {
+            return RedirectToAction(nameof(SelectRestaurant));
+        }
+
+        var restaurant = _restaurantApiClient.GetRestaurantMenuById(restaurantId.Value);
+
+        if (restaurant == null)
+        {
+            return NotFound();
+        }
+
+        bool foodItemExists = restaurant.Menus
+            .SelectMany(m => m.Categories)
+            .SelectMany(c => c.FoodItems)
+            .Any(f => f.FoodItemId == foodItemId);
+
+        if (!foodItemExists)
+        {
+            return NotFound();
+        }
+
+        bool deleted = _foodItemApiClient.DeleteFoodItem(foodItemId);
+
+        TempData[deleted ? "Success" : "Error"] =
+            deleted ? "Food item deleted successfully." : "Could not delete food item.";
+
+        return RedirectToAction(nameof(FoodItems));
+    }
+
 }

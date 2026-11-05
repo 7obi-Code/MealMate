@@ -5,158 +5,550 @@
 }
 
 <div class="manager-page">
+    <a asp-controller="Manager" asp-action="Index" class="back-link">
+        &larr; Back to Manager Dashboard
+    </a>
 
-    <div class="manager-back">
-        <a asp-controller="Manager" asp-action="Index">
-            ← Back to Dashboard
-        </a>
-    </div>
-
-    <div class="manager-heading">
+    <div class="page-heading">
         <h1>Manage Food Items</h1>
         <p>@Model.Name</p>
     </div>
 
-    @if (Model.Menus == null || !Model.Menus.Any())
+    @if (TempData["Success"] != null)
     {
-        <p>No menus found for this restaurant.</p>
+        <div class="message success-message">@TempData["Success"]</div>
     }
-    else
-    {
-        @foreach (var menu in Model.Menus)
-        {
-            <section class="food-menu">
-                <h2>@menu.Name</h2>
 
-                @if (menu.Categories == null || !menu.Categories.Any())
-                {
-                    <p>No categories in this menu.</p>
-                }
-                else
+    @if (TempData["Error"] != null)
+    {
+        <div class="message error-message">@TempData["Error"]</div>
+    }
+
+    <div class="management-panel">
+        <div class="panel-heading">
+            <h2>Food Item Management</h2>
+            <p>Create new food items or edit and remove existing ones.</p>
+        </div>
+
+        <!-- CREATE FOOD ITEM -->
+        <details class="management-section">
+            <summary>
+                <span class="section-title">Create Food Item</span>
+                <span class="section-description">Add a new item to your menu</span>
+                <span class="dropdown-icon">+</span>
+            </summary>
+
+            <div class="management-content">
+                <form asp-controller="Manager"
+                      asp-action="CreateFoodItem"
+                      method="post"
+                      onsubmit="return confirmCreate(this)">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="createName">Name</label>
+                            <input id="createName" name="Name" type="text" required maxlength="150" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="createCategory">Category</label>
+                            <select id="createCategory" name="CategoryId" required>
+                                <option value="">Select category</option>
+                                @foreach (var menu in Model.Menus)
+                                {
+                                    @foreach (var category in menu.Categories)
+                                    {
+                                        <option value="@category.CategoryId">
+                                            @category.Name
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="createDescription">Description</label>
+                            <textarea id="createDescription"
+                                      name="Description"
+                                      rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="createAmount">Price</label>
+                            <input id="createAmount"
+                                   name="Amount"
+                                   type="number"
+                                   min="0"
+                                   step="0.01"
+                                   required />
+                        </div>
+
+                        <div class="form-group availability-group">
+                            <label for="createAvailable">Availability</label>
+                            <label class="checkbox-label">
+                                <input id="createAvailable"
+                                       name="IsAvailable"
+                                       type="checkbox"
+                                       value="true"
+                                       checked />
+                                Available
+                            </label>
+                            <input type="hidden" name="IsAvailable" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="primary-button">
+                            Create Food Item
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </details>
+
+        <!-- EDIT FOOD ITEMS -->
+        <details class="management-section">
+            <summary>
+                <span class="section-title">Edit Food Items</span>
+                <span class="section-description">Update or delete existing items</span>
+                <span class="dropdown-icon">+</span>
+            </summary>
+
+            <div class="management-content">
+                @foreach (var menu in Model.Menus)
                 {
                     @foreach (var category in menu.Categories)
                     {
-                        <div class="food-category">
+                        <div class="category-group">
                             <h3>@category.Name</h3>
 
-                            @if (category.FoodItems == null || !category.FoodItems.Any())
+                            @if (!category.FoodItems.Any())
                             {
-                                <p>No food items in this category.</p>
+                                <p class="empty-message">No food items in this category.</p>
                             }
-                            else
+
+                            @foreach (var item in category.FoodItems)
                             {
-                                <div class="food-grid">
+                                <div class="food-card">
+                                    <form asp-controller="Manager"
+                                          asp-action="EditFoodItem"
+                                          method="post"
+                                          onsubmit="return confirmEdit(this)">
 
-                                    @foreach (var item in category.FoodItems)
-                                    {
-                                        <article class="food-card">
+                                        @Html.AntiForgeryToken()
 
+                                        <input type="hidden"
+                                               name="foodItemId"
+                                               value="@item.FoodItemId" />
+
+                                        <div class="food-card-heading">
                                             <h4>@item.Name</h4>
+                                            <span class="item-id">ID: @item.FoodItemId</span>
+                                        </div>
 
-                                            <p>@item.Description</p>
+                                        <div class="form-grid">
+                                            <div class="form-group">
+                                                <label>Name</label>
+                                                <input name="Name"
+                                                       type="text"
+                                                       value="@item.Name"
+                                                       required
+                                                       maxlength="150" />
+                                            </div>
 
-                                            <p>
-                                                Preparation time:
-                                                @item.PreparationMinutes minutes
-                                            </p>
+                                            <div class="form-group">
+                                                <label>Price</label>
+                                                <input name="Amount"
+                                                       type="number"
+                                                       min="0"
+                                                       step="0.01"
+                                                       value="@(item.Prices.FirstOrDefault()?.Amount ?? 0)"
+                                                       required />
+                                            </div>
 
-                                            <p>
-                                                Status:
-                                                @(item.IsAvailable ? "Available" : "Unavailable")
-                                            </p>
+                                            <div class="form-group full-width">
+                                                <label>Description</label>
+                                                <textarea name="Description"
+                                                          rows="2">@item.Description</textarea>
+                                            </div>
 
-                                        </article>
-                                    }
+                                            <div class="form-group availability-group">
+                                                <label>Availability</label>
+                                                <label class="checkbox-label">
+                                                    <input name="IsAvailable"
+                                                           type="checkbox"
+                                                           value="true"
+                                                           checked="@item.IsAvailable" />
+                                                    Available
+                                                </label>
+                                                <input type="hidden"
+                                                       name="IsAvailable"
+                                                       value="false" />
+                                            </div>
+                                        </div>
 
+                                        <div class="form-actions">
+                                            <button type="submit" class="primary-button">
+                                                Save Changes
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <div class="delete-area">
+                                        <form asp-controller="Manager"
+                                              asp-action="DeleteFoodItem"
+                                              method="post"
+                                              onsubmit="return confirmDelete(this)">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="foodItemId"
+                                                   value="@item.FoodItemId" />
+
+                                            <input type="hidden"
+                                                   name="FoodItemName"
+                                                   value="@item.Name" />
+
+                                            <button type="submit" class="delete-button">
+                                                Delete Food Item
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             }
                         </div>
                     }
                 }
-            </section>
-        }
-    }
-
+            </div>
+        </details>
+    </div>
 </div>
 
 <style>
     .manager-page {
-        max-width: 1200px;
+        width: 100%;
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 2rem 1.5rem 4rem;
-        color: #24382a;
+        padding: 1rem;
+        box-sizing: border-box;
     }
 
-    .manager-back {
+    .back-link {
+        display: inline-block;
+        margin-bottom: 1.5rem;
+        color: #476b4a;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+    .page-heading {
         margin-bottom: 2rem;
     }
 
-        .manager-back a {
-            color: #36784a;
-            font-weight: 600;
-            text-decoration: none;
+        .page-heading h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: #263b2a;
         }
 
-    .manager-heading {
-        margin-bottom: 2rem;
+        .page-heading p {
+            margin-top: .4rem;
+            color: #687568;
+        }
+
+    .management-panel {
+        width: 100%;
+        padding: clamp(1rem, 4vw, 2rem);
+        box-sizing: border-box;
+        background: #fff;
+        border: 2px solid #b8cbb8;
+        border-radius: 18px;
+        box-shadow: 0 5px 20px rgba(24, 48, 30, .08);
     }
 
-        .manager-heading h1 {
-            margin-bottom: .5rem;
-            font-size: 2.5rem;
-            font-weight: 800;
-        }
-
-        .manager-heading p {
-            color: #68736b;
-        }
-
-    .food-menu {
-        margin-bottom: 2.5rem;
+    .panel-heading {
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid #e1e9e0;
     }
 
-        .food-menu h2 {
-            margin-bottom: 1.5rem;
-            font-size: 1.6rem;
+        .panel-heading h2 {
+            margin: 0 0 .4rem;
+            color: #263b2a;
         }
 
-    .food-category {
-        margin-bottom: 2rem;
+        .panel-heading p {
+            margin: 0;
+            color: #687568;
+        }
+
+    .management-section {
+        margin-top: 1.5rem;
+        border: 2px solid #b8cbb8;
+        border-radius: 14px;
+        background: #fff;
+        overflow: hidden;
+        box-shadow: 0 3px 12px rgba(24, 48, 30, .06);
     }
 
-        .food-category h3 {
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
+        .management-section[open] {
+            border-color: #789c7b;
         }
 
-    .food-grid {
+        .management-section summary {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1.4rem 1.5rem;
+            background: #edf4eb;
+            cursor: pointer;
+            list-style: none;
+        }
+
+    .section-title {
+        color: #263b2a;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .section-description {
+        color: #687568;
+        font-size: .9rem;
+        flex: 1 1 100%;
+        order: 3;
+    }
+
+    .dropdown-icon {
+        margin-left: auto;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #476b4a;
+        transition: transform .2s ease;
+    }
+
+    .management-section[open] .dropdown-icon {
+        transform: rotate(45deg);
+    }
+
+    .management-content {
+        padding: clamp(1rem, 3vw, 2rem);
+        border-top: 1px solid #dce8dc;
+        box-sizing: border-box;
+    }
+
+    .form-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+        gap: 1.25rem;
     }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+        min-width: 0;
+    }
+
+        .form-group label {
+            font-weight: 600;
+            color: #354b37;
+        }
+
+        .form-group input:not([type="checkbox"]),
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            min-width: 0;
+            padding: .75rem;
+            border: 1px solid #cbd8ca;
+            border-radius: 8px;
+            font: inherit;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+            .form-group input:focus,
+            .form-group select:focus,
+            .form-group textarea:focus {
+                outline: 2px solid #9ab99b;
+                border-color: #789c7b;
+            }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    .availability-group {
+        justify-content: center;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        font-weight: 400 !important;
+    }
+
+        .checkbox-label input {
+            width: 18px;
+            height: 18px;
+        }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
+    }
+
+    .primary-button {
+        padding: .8rem 1.4rem;
+        background: #476b4a;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+        .primary-button:hover {
+            background: #365539;
+        }
+
+    .category-group {
+        margin-bottom: 2rem;
+    }
+
+        .category-group h3 {
+            padding-bottom: .6rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e1e9e0;
+            color: #354b37;
+        }
 
     .food-card {
-        padding: 1.5rem;
-        background: white;
-        border: 1px solid #e3e9e3;
+        width: 100%;
+        padding: clamp(1rem, 3vw, 1.5rem);
+        margin-bottom: 1.25rem;
+        background: #f8fbf7;
+        border: 2px solid #d3e0d2;
         border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(24, 48, 30, .04);
+        box-sizing: border-box;
     }
 
-        .food-card h4 {
-            margin: 0 0 .75rem;
-            font-size: 1.1rem;
+    .food-card-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: .5rem;
+        margin-bottom: 1.25rem;
+    }
+
+        .food-card-heading h4 {
+            margin: 0;
+            color: #263b2a;
+            font-size: 1.05rem;
         }
 
-        .food-card p {
-            margin: .5rem 0;
-            color: #68736b;
-            line-height: 1.5;
+    .item-id {
+        color: #899489;
+        font-size: .8rem;
+    }
+
+    .delete-area {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 1rem;
+        margin-top: 1rem;
+        border-top: 1px solid #e1e9e0;
+    }
+
+    .delete-button {
+        padding: .65rem 1rem;
+        background: #fff;
+        color: #a33232;
+        border: 1px solid #d99b9b;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+        .delete-button:hover {
+            background: #fff0f0;
         }
 
-    @@media (max-width: 650px) {
-        .food-grid {
-            grid-template-columns: 1fr;
-        }
+    .message {
+        padding: 1rem 1.2rem;
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+    }
+
+    .success-message {
+        background: #edf7ed;
+        border: 1px solid #b8d8b8;
+        color: #285d2d;
+    }
+
+    .error-message {
+        background: #fff0f0;
+        border: 1px solid #e2b5b5;
+        color: #922e2e;
+    }
+
+    .empty-message {
+        color: #899489;
+        font-style: italic;
     }
 </style>
+
+<script>
+    function confirmCreate(form) {
+        const name = form.querySelector('[name="Name"]').value;
+        const description = form.querySelector('[name="Description"]').value;
+        const category = form.querySelector('[name="CategoryId"]');
+        const categoryName = category.options[category.selectedIndex]?.text;
+        const amount = form.querySelector('[name="Amount"]').value;
+        const available = form.querySelector('[name="IsAvailable"]:checked') !== null;
+
+        return confirm(
+            "Create this food item?\n\n" +
+            "Name: " + name + "\n" +
+            "Description: " + (description || "None") + "\n" +
+            "Category: " + categoryName + "\n" +
+            "Price: " + amount + "\n" +
+            "Available: " + (available ? "Yes" : "No")
+        );
+    }
+
+    function confirmEdit(form) {
+        const name = form.querySelector('[name="Name"]').value;
+        const description = form.querySelector('[name="Description"]').value;
+        const amount = form.querySelector('[name="Amount"]').value;
+        const available = form.querySelector('[name="IsAvailable"]:checked') !== null;
+
+        return confirm(
+            "Save these changes?\n\n" +
+            "Name: " + name + "\n" +
+            "Description: " + (description || "None") + "\n" +
+            "Price: " + amount + "\n" +
+            "Available: " + (available ? "Yes" : "No")
+        );
+    }
+
+    function confirmDelete(form) {
+        const name = form.querySelector('[name="FoodItemName"]').value;
+
+        return confirm(
+            "Are you sure you want to delete this food item?\n\n" +
+            "Item: " + name + "\n\n" +
+            "This will also delete its associated price. This action cannot be undone."
+        );
+    }
+</script>
