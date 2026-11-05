@@ -1,0 +1,62 @@
+﻿
+BEGIN;
+
+INSERT INTO mealmate_v1."PostalCode"
+    ("postalCode", "city")
+VALUES ('9000', 'Aalborg');
+
+INSERT INTO mealmate_v1."AmusementPark"
+    ("name", "streetName", "streetNumber", "postalCode_fk")
+SELECT
+    'Adventure Park',
+    'Parkvej',
+    '10',
+    "postalCodeId"
+FROM mealmate_v1."PostalCode"
+WHERE "postalCode" = '9000';
+
+INSERT INTO mealmate_v1."Restaurant"
+    ("parkId_fk", "name", "isAcceptingOrders")
+SELECT
+    "parkId",
+    'Burger House',
+    TRUE
+FROM mealmate_v1."AmusementPark"
+WHERE "name" = 'Adventure Park';
+
+INSERT INTO mealmate_v1."Menu"
+    ("restaurantId_fk", "name", "isActive")
+SELECT
+    "restaurantId",
+    'Main Menu',
+    TRUE
+FROM mealmate_v1."Restaurant"
+WHERE "name" = 'Burger House';
+
+INSERT INTO mealmate_v1."FoodCategory"
+    ("menuId_fk", "name")
+SELECT
+    "menuId",
+    'Burgers'
+FROM mealmate_v1."Menu"
+WHERE "name" = 'Main Menu';
+
+INSERT INTO mealmate_v1."FoodItem"
+    ("categoryId_fk", "name", "description", "isAvailable")
+SELECT
+    "categoryId",
+    'Cheeseburger',
+    'Beef patty, cheese and burger bun',
+    TRUE
+FROM mealmate_v1."FoodCategory"
+WHERE "name" = 'Burgers';
+
+INSERT INTO mealmate_v1."Price"
+    ("foodItemId_fk", "amount")
+SELECT
+    "foodItemId",
+    79.00
+FROM mealmate_v1."FoodItem"
+WHERE "name" = 'Cheeseburger';
+
+COMMIT;
