@@ -63,15 +63,11 @@ public class CartController : Controller
             return BadRequest("Retten har ingen tilgængelig pris.");
 
         // Find ingredienserne, der hører til retten.
-        // Vi beholder FoodItemIngredient, da den indeholder
-        // IsDefault og ExtraPrice.
         var availableIngredients = foodItem.Ingredients
             .Where(i => i.Ingredient != null)
             .ToList();
 
         // Find kundens valgte ingredienser.
-        // Hvis kunden ikke har tilpasset retten,
-        // bruges ingredienserne, der er valgt som standard.
         var selectedIds = customizationSubmitted
             ? selectedIngredientIds ?? new List<int>()
             : availableIngredients
@@ -79,8 +75,7 @@ public class CartController : Controller
                 .Select(i => i.IngredientId)
                 .ToList();
 
-        // Valider, at kunden kun vælger ingredienser,
-        // der hører til den pågældende ret.
+        // Valider ingrediensvalgene.
         if (selectedIds.Except(
                 availableIngredients.Select(i => i.IngredientId))
             .Any())
@@ -88,7 +83,7 @@ public class CartController : Controller
             return BadRequest("Ugyldigt ingrediensvalg.");
         }
 
-        // Opret listen over valgte ingredienser til kurven.
+        // Opret listen over valgte ingredienser.
         var selectedIngredients = availableIngredients
             .Where(i => selectedIds.Contains(i.IngredientId))
             .Select(i => new CartItemIngredient
@@ -97,6 +92,14 @@ public class CartController : Controller
                 Name = i.Ingredient!.Name,
                 ExtraPrice = i.ExtraPrice
             })
+            .ToList();
+
+        // Find standardingredienser, som kunden har fravalgt.
+        var removedIngredients = availableIngredients
+            .Where(i =>
+                i.IsDefault &&
+                !selectedIds.Contains(i.IngredientId))
+            .Select(i => i.Ingredient!.Name)
             .ToList();
 
         var cart = HttpContext.Session
@@ -115,7 +118,7 @@ public class CartController : Controller
                 new { id = restaurantId, cartOpen = true });
         }
 
-        // Find kun en eksisterende linje, hvis tilpasningerne også er ens.
+        // Find kun en eksisterende linje, hvis ingrediensvalgene er ens.
         var existingItem = cart.FirstOrDefault(item =>
             item.FoodItemId == foodItemId &&
             item.RestaurantId == restaurantId &&
@@ -130,6 +133,7 @@ public class CartController : Controller
         if (existingItem != null)
         {
             existingItem.Quantity += quantity;
+            existingItem.RemovedIngredients = removedIngredients;
         }
         else
         {
@@ -140,7 +144,8 @@ public class CartController : Controller
                 Name = foodItem.Name,
                 BasePrice = currentPrice.Amount,
                 Quantity = quantity,
-                SelectedIngredients = selectedIngredients
+                SelectedIngredients = selectedIngredients,
+                RemovedIngredients = removedIngredients
             });
         }
 

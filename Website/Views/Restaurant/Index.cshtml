@@ -324,6 +324,17 @@
                                 }
                             </div>
                         }
+                        @if (item.RemovedIngredients.Any())
+                        {
+                            <div class="cart-ingredients">
+                                <strong>Fravalgt:</strong>
+
+                                @foreach (var ingredient in item.RemovedIngredients)
+                                {
+                                    <span>Uden @ingredient</span>
+                                }
+                            </div>
+                        }
 
                         <span>
                             @item.UnitPrice.ToString("0.00") kr. pr. stk.
@@ -1083,21 +1094,23 @@
             }
 
             function updateIngredient(row, change) {
-                const quantityElement =
-                    row.querySelector(".ingredient-quantity");
+                const quantityElement = row.querySelector(".ingredient-quantity");
+                const selectedInput = row.querySelector(".ingredient-selected");
 
-                const selectedInput =
-                    row.querySelector(".ingredient-selected");
+                let quantity = parseInt(quantityElement.textContent) || 0;
 
-                let quantity =
-                    parseInt(quantityElement.textContent) || 0;
-
-                // Denne version tillader 0 eller 1 af hver ingrediens.
+                // Hver ingrediens kan vælges 0 eller 1 gang.
                 quantity = Math.max(0, Math.min(1, quantity + change));
 
+                // Opdater det viste antal.
                 quantityElement.textContent = quantity;
 
-                selectedInput.disabled = quantity === 0;
+                // Send kun ingrediensens ID, hvis den er valgt.
+                if (quantity === 1) {
+                    selectedInput.disabled = false;
+                } else {
+                    selectedInput.disabled = true;
+                }
 
                 updatePrice();
             }
