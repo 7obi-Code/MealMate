@@ -34,6 +34,10 @@ builder.Services.AddScoped<IFRestaurantDao>(services =>
 builder.Services.AddScoped<IFCustomerDao>(
     _ => new CustomerDao(connectionString));
 
+// Register FoodCategoryDao.
+builder.Services.AddScoped<IFFoodCategoryDao>(
+    _ => new FoodCategoryDao(connectionString));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

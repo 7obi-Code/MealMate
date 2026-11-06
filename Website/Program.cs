@@ -28,6 +28,12 @@ builder.Services.AddScoped<FoodItemApiClient>(_ =>
         builder.Configuration["ApiSettings:FoodItemUrl"]!
     ));
 
+// Register FoodCategoryApiClient
+builder.Services.AddScoped<FoodCategoryApiClient>(_ =>
+    new FoodCategoryApiClient(
+        builder.Configuration["ApiSettings:FoodCategoryUrl"]!
+    ));
+
 var app = builder.Build();
 
 // Configure for OpenID

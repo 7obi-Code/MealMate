@@ -14,11 +14,13 @@ public class ManagerController : Controller
 {
     private readonly RestaurantApiClient _restaurantApiClient;
     private readonly FoodItemApiClient _foodItemApiClient;
+    private readonly FoodCategoryApiClient _foodCategoryApiClient;
 
-    public ManagerController(RestaurantApiClient restaurantApiClient, FoodItemApiClient foodItemApiClient)
+    public ManagerController (RestaurantApiClient restaurantApiClient, FoodItemApiClient foodItemApiClient, FoodCategoryApiClient foodCategoryApiClient)
     {
         _restaurantApiClient = restaurantApiClient;
         _foodItemApiClient = foodItemApiClient;
+        _foodCategoryApiClient = foodCategoryApiClient;
     }
 
     [AllowAnonymous]
@@ -229,6 +231,59 @@ public class ManagerController : Controller
             deleted ? "Food item deleted successfully." : "Could not delete food item.";
 
         return RedirectToAction(nameof(FoodItems));
+    }
+
+    //Manager Funktion
+    [HttpGet("Categories")]
+    public IActionResult Categories()
+    {
+        var restaurantId = HttpContext.Session.GetInt32("RestaurantId");
+
+        if (restaurantId == null)
+            return RedirectToAction(nameof(SelectRestaurant));
+
+        var restaurant = _restaurantApiClient.GetRestaurantMenuById(restaurantId.Value);
+
+        if (restaurant == null)
+            return NotFound();
+
+        return View(restaurant);
+    }
+
+    //Manager Funktion
+    [HttpPost("Categories/Create")]
+    [ValidateAntiForgeryToken]
+    public IActionResult CreateCategory(CreateFoodCategoryRequest request)
+    {
+        var restaurantId = HttpContext.Session.GetInt32("RestaurantId");
+
+        if (restaurantId == null)
+            return RedirectToAction(nameof(SelectRestaurant));
+
+        var restaurant = _restaurantApiClient.GetRestaurantMenuById(restaurantId.Value);
+
+        if (restaurant == null)
+            return NotFound();
+
+        var menu = restaurant.Menus.FirstOrDefault(m => m.MenuId == request.MenuId);
+
+        if (menu == null || string.IsNullOrWhiteSpace(request.Name))
+            return BadRequest();
+
+        var availableIds = menu.Categories
+            .SelectMany(c => c.FoodItems)
+            .Select(f => f.FoodItemId)
+            .ToHashSet();
+
+        if (request.FoodItemIds.Any(id => !availableIds.Contains(id)))
+            return BadRequest("Invalid food item.");
+
+        bool created = _foodCategoryApiClient.CreateCategory(request);
+
+        TempData[created ? "Success" : "Error"] =
+            created ? "Category created successfully." : "Could not create category.";
+
+        return RedirectToAction(nameof(Categories));
     }
 
 }

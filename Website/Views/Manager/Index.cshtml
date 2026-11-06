@@ -1,187 +1,141 @@
-﻿@{
+﻿@model DataAccess.Model.Restaurant
+
+@{
     ViewData["Title"] = "Manager Dashboard";
 }
 
-<div class="manager-page">
+<div class="container mt-4">
+    <h2>Manager Dashboard</h2>
 
-    <div class="manager-back">
-        <a asp-controller="Home" asp-action="Index">
-            ← Back to restaurant selection
-        </a>
-    </div>
+    <div class="management-panel">
 
-    <div class="manager-heading">
-        <h1>Manager Dashboard</h1>
-    </div>
+        <!-- Welcome -->
+        <div class="management-section">
+            <div class="management-section-header">
+                <h4>Welcome, @Model.Name</h4>
+            </div>
 
-    <div class="manager-grid">
+            <div class="management-content">
+                <p>
+                    Manage your restaurant, menus, food items and online ordering
+                    from this dashboard.
+                </p>
 
-        <article class="manager-card">
-            <div class="manager-card-icon">🍔</div>
-            <h3>Food Items</h3>
-            <p>
-                Add new dishes, update descriptions and prices,
-                or remove items from your restaurant's menu.
-            </p>
-            <a asp-controller="Manager"
-               asp-action="FoodItems"
-               class="manager-action">
-                Manage Food Items <span>→</span>
-            </a>
-        </article>
+                <p><strong>Restaurant ID:</strong> @Model.RestaurantId</p>
 
-        <article class="manager-card">
-            <div class="manager-card-icon">📋</div>
-            <h3>Menu Management</h3>
-            <p>
-                Organize your menu into categories and control
-                which menus are currently active.
-            </p>
-            <button class="manager-action" type="button" disabled>
-                Manage Menus <span>→</span>
-            </button>
-        </article>
+                <a asp-controller="Manager"
+                   asp-action="SelectRestaurant"
+                   class="btn btn-outline-secondary">
+                    Change Restaurant
+                </a>
+            </div>
+        </div>
 
-        <article class="manager-card">
-            <div class="manager-card-icon">🛒</div>
-            <h3>Online Ordering</h3>
-            <p>
-                Control whether customers can place online orders
-                when your restaurant is busy.
-            </p>
-            <button class="manager-action" type="button" disabled>
-                Ordering Settings <span>→</span>
-            </button>
-        </article>
+        <!-- Management sections -->
+        <div class="manager-grid">
 
-        <article class="manager-card">
-            <div class="manager-card-icon">🏪</div>
-            <h3>Restaurant Details</h3>
-            <p>
-                View and update your restaurant's information
-                and customer-facing details.
-            </p>
-            <button class="manager-action" type="button" disabled>
-                Restaurant Settings <span>→</span>
-            </button>
-        </article>
+            <div class="management-section">
+                <div class="management-section-header">
+                    <h5>Food Items</h5>
+                </div>
 
+                <div class="management-content">
+                    <p>Create, edit and remove food items and their prices.</p>
+
+                    <a asp-controller="Manager"
+                       asp-action="FoodItems"
+                       class="btn btn-success">
+                        Manage Food Items
+                    </a>
+                </div>
+            </div>
+
+            <div class="management-section">
+                <div class="management-section-header">
+                    <h5>Menu Management</h5>
+                </div>
+
+                <div class="management-content">
+                    <p>Organize food items into categories and manage menus.</p>
+
+                    <a asp-controller="Manager"
+                       asp-action="Categories"
+                       class="btn btn-success">
+                        Manage Categories
+                    </a>
+                </div>
+            </div>
+
+            <div class="management-section">
+                <div class="management-section-header">
+                    <h5>Online Ordering</h5>
+                </div>
+
+                <div class="management-content">
+                    <p>Control whether customers can place online orders.</p>
+
+                    <button class="btn btn-secondary" disabled>
+                        Coming Soon
+                    </button>
+                </div>
+            </div>
+
+            <div class="management-section">
+                <div class="management-section-header">
+                    <h5>Restaurant Details</h5>
+                </div>
+
+                <div class="management-content">
+                    <p>Manage your restaurant's information and settings.</p>
+
+                    <button class="btn btn-secondary" disabled>
+                        Coming Soon
+                    </button>
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
 
 <style>
-    .manager-page {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1.5rem 4rem;
-        color: #24382a;
+    .management-panel {
+        padding: 2rem;
+        background: white;
+        border: 2px solid #dce8dc;
+        border-radius: 18px;
     }
 
-    .manager-back {
-        margin-top: 2rem;
+    .management-section {
+        border: 2px solid #dce8dc;
+        border-radius: 14px;
+        overflow: hidden;
+        background: white;
     }
 
-        .manager-back a {
-            color: #36784a;
-            font-weight: 600;
-            text-decoration: none;
+    .management-section-header {
+        padding: 1rem 1.5rem;
+        background: #f0f6ed;
+        border-bottom: 2px solid #dce8dc;
+    }
+
+        .management-section-header h4,
+        .management-section-header h5 {
+            margin: 0;
         }
 
-            .manager-back a:hover {
-                text-decoration: underline;
-            }
-
-    .manager-heading {
-        margin-bottom: 2rem;
+    .management-content {
+        padding: 1.5rem;
     }
-
-        .manager-heading h1 {
-            margin: .5rem 0;
-            font-size: clamp(2rem, 4vw, 2.8rem);
-            font-weight: 800;
-        }
 
     .manager-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1.25rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
     }
 
-    .manager-card {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 1.5rem;
-        background: white;
-        border: 1px solid #e3e9e3;
-        border-radius: 16px;
-        box-shadow: 0 4px 15px rgba(24, 48, 30, .04);
-        transition: box-shadow .2s ease, transform .2s ease;
-    }
-
-        .manager-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(24, 48, 30, .09);
-        }
-
-    .manager-card-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 52px;
-        height: 52px;
+    .management-content p {
         margin-bottom: 1rem;
-        background: #edf4e9;
-        border-radius: 14px;
-        font-size: 1.6rem;
-    }
-
-    .manager-card h3 {
-        margin: 0 0 .65rem;
-        font-size: 1.15rem;
-        font-weight: 750;
-    }
-
-    .manager-card p {
-        flex: 1;
-        margin: 0 0 1.25rem;
-        color: #68736b;
-        line-height: 1.65;
-    }
-
-    .manager-action {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-        width: 100%;
-        padding: .8rem 1rem;
-        border: 0;
-        border-radius: 9px;
-        background: #edf4e9;
-        color: #376b49;
-        font-weight: 700;
-        text-align: left;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-        .manager-action:disabled {
-            opacity: .8;
-            cursor: not-allowed;
-        }
-
-        .manager-action span {
-            font-size: 1.2rem;
-        }
-
-    @@media (max-width: 650px) {
-        .manager-page {
-            padding: 1.5rem 1rem 3rem;
-        }
-
-        .manager-grid {
-            grid-template-columns: 1fr;
-        }
     }
 </style>
