@@ -1,0 +1,187 @@
+﻿@model DataAccess.Model.Restaurant
+
+@{
+    ViewData["Title"] = "Manage Categories";
+}
+
+<div class="manager-page">
+    <a asp-controller="Manager" asp-action="Index">← Back to Dashboard</a>
+
+    <h1>Manage Categories</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <p class="success">@TempData["Success"]</p>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <p class="error">@TempData["Error"]</p>
+    }
+
+    <div class="category-panel">
+        <h2>Create Category</h2>
+        <p>Create a category and select the food items that belong to it.</p>
+
+        <form asp-action="CreateCategory" method="post">
+            @Html.AntiForgeryToken()
+
+            <label>Menu</label>
+            <select name="MenuId" id="menuSelect" required>
+                @foreach (var menu in Model.Menus)
+                {
+                    <option value="@menu.MenuId">@menu.Name</option>
+                }
+            </select>
+
+            <label>Category Name</label>
+            <input type="text" name="Name" maxlength="100" required
+                   placeholder="e.g. Burgers" />
+
+            <h3>Select Food Items</h3>
+
+            @foreach (var menu in Model.Menus)
+            {
+                <div class="menu-food-items" data-menu="@menu.MenuId">
+                    @foreach (var category in menu.Categories)
+                    {
+                        @foreach (var item in category.FoodItems)
+                        {
+                            <label class="food-option">
+                                <input type="checkbox"
+                                       name="FoodItemIds"
+                                       value="@item.FoodItemId" />
+                                @item.Name
+                                <span>(Currently: @category.Name)</span>
+                            </label>
+                        }
+                    }
+                </div>
+            }
+
+            <button type="submit">Create Category</button>
+        </form>
+    </div>
+
+    <div class="category-panel">
+        <h2>Existing Categories</h2>
+
+        @foreach (var menu in Model.Menus)
+        {
+            <h3>@menu.Name</h3>
+
+            @foreach (var category in menu.Categories)
+            {
+                <div class="existing-category">
+                    <strong>@category.Name</strong>
+                    <ul>
+                        @foreach (var item in category.FoodItems)
+                        {
+                            <li>@item.Name</li>
+                        }
+                    </ul>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .manager-page {
+        max-width: 1000px;
+        margin: auto;
+        padding: 2rem;
+    }
+
+    .category-panel {
+        margin-top: 2rem;
+        padding: 2rem;
+        background: white;
+        border: 2px solid #d3e0d2;
+        border-radius: 14px;
+    }
+
+        .category-panel h2 {
+            color: #263b2a;
+        }
+
+        .category-panel form {
+            display: flex;
+            flex-direction: column;
+            gap: .8rem;
+        }
+
+        .category-panel input[type="text"],
+        .category-panel select {
+            padding: .8rem;
+            border: 1px solid #cbd8ca;
+            border-radius: 8px;
+        }
+
+    .food-option {
+        display: block;
+        padding: .7rem;
+        margin: .3rem 0;
+        background: #f5f8f3;
+        border-radius: 8px;
+    }
+
+        .food-option span {
+            color: #687568;
+            font-size: .85rem;
+        }
+
+    .menu-food-items {
+        display: none;
+    }
+
+        .menu-food-items.active {
+            display: block;
+        }
+
+    .category-panel button {
+        padding: .8rem 1.2rem;
+        border: none;
+        border-radius: 8px;
+        background: #476b4a;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .existing-category {
+        padding: 1rem;
+        margin: .7rem 0;
+        background: #f5f8f3;
+        border: 1px solid #d3e0d2;
+        border-radius: 8px;
+    }
+
+    .success {
+        color: green;
+    }
+
+    .error {
+        color: darkred;
+    }
+</style>
+
+<script>
+    const menuSelect = document.getElementById("menuSelect");
+    const menuGroups = document.querySelectorAll(".menu-food-items");
+
+    function updateMenuItems() {
+        menuGroups.forEach(group => {
+            const selected = group.dataset.menu === menuSelect.value;
+            group.classList.toggle("active", selected);
+
+            if (!selected) {
+                group.querySelectorAll("input[type=checkbox]")
+                    .forEach(checkbox => checkbox.checked = false);
+            }
+        });
+    }
+
+    menuSelect.addEventListener("change", updateMenuItems);
+    updateMenuItems();
+</script>

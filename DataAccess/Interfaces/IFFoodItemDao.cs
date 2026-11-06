@@ -10,5 +10,10 @@ namespace DataAccess.Interfaces
         List<FoodItem> GetFoodItemsByCategoryId(int categoryId);
         List<FoodItem> GetFoodItemsByMenuId(int menuId);
         FoodItem? GetFoodItemById(int foodItemId);
+        int CreateFoodItem(FoodItem foodItem, int categoryId, decimal amount);
+
+        bool UpdateFoodItem(FoodItem foodItem, decimal amount);
+
+        bool DeleteFoodItem(int foodItemId);
     }
 }

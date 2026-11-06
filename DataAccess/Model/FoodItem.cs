@@ -10,5 +10,6 @@ namespace DataAccess.Model
         public bool IsAvailable { get; set; }
         public List<Price> Prices { get; set; } = new();
         public List<FoodItemIngredient> Ingredients { get; set; } = new();
+        public int PreparationMinutes { get; set; }
     }
 }

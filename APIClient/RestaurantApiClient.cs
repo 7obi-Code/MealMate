@@ -1,5 +1,6 @@
 ﻿
 using DataAccess.Model;
+using DataAccess.DTOs;
 using RestSharp;
 using System.Collections.Generic;
 
