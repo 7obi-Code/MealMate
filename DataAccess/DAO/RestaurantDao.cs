@@ -82,10 +82,11 @@ namespace DataAccess.DAO
             }
         }
 
+
         private static List<Restaurant> GetTestRestaurants()
         {
             return new List<Restaurant>
-            {
+    {
         // TESTRESTAURANT 1
         new Restaurant
         {
@@ -124,6 +125,70 @@ namespace DataAccess.DAO
                                             Amount = 89,
                                             ValidFrom = DateTime.Now.AddDays(-1)
                                         }
+                                    },
+
+                                    Ingredients = new List<FoodItemIngredient>
+                                    {
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9001,
+                                            IngredientId = 1,
+                                            IsDefault = true,
+                                            ExtraPrice = 0,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 1,
+                                                Name = "Salat"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9001,
+                                            IngredientId = 2,
+                                            IsDefault = true,
+                                            ExtraPrice = 0,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 2,
+                                                Name = "Tomat"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9001,
+                                            IngredientId = 3,
+                                            IsDefault = true,
+                                            ExtraPrice = 0,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 3,
+                                                Name = "Ost"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9001,
+                                            IngredientId = 4,
+                                            IsDefault = false,
+                                            ExtraPrice = 10,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 4,
+                                                Name = "Bacon"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9001,
+                                            IngredientId = 5,
+                                            IsDefault = false,
+                                            ExtraPrice = 5,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 5,
+                                                Name = "Ekstra dressing"
+                                            }
+                                        }
                                     }
                                 },
 
@@ -140,6 +205,58 @@ namespace DataAccess.DAO
                                         {
                                             Amount = 99,
                                             ValidFrom = DateTime.Now.AddDays(-1)
+                                        }
+                                    },
+
+                                    Ingredients = new List<FoodItemIngredient>
+                                    {
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9002,
+                                            IngredientId = 3,
+                                            IsDefault = true,
+                                            ExtraPrice = 0,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 3,
+                                                Name = "Ost"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9002,
+                                            IngredientId = 6,
+                                            IsDefault = true,
+                                            ExtraPrice = 0,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 6,
+                                                Name = "Løg"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9002,
+                                            IngredientId = 4,
+                                            IsDefault = false,
+                                            ExtraPrice = 10,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 4,
+                                                Name = "Bacon"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9002,
+                                            IngredientId = 7,
+                                            IsDefault = false,
+                                            ExtraPrice = 8,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 7,
+                                                Name = "Ekstra ost"
+                                            }
                                         }
                                     }
                                 }
@@ -188,6 +305,70 @@ namespace DataAccess.DAO
                                             Amount = 85,
                                             ValidFrom = DateTime.Now.AddDays(-1)
                                         }
+                                    },
+
+                                    Ingredients = new List<FoodItemIngredient>
+                                    {
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9003,
+                                            IngredientId = 8,
+                                            IsDefault = true,
+                                            ExtraPrice = 0,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 8,
+                                                Name = "Tomatsauce"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9003,
+                                            IngredientId = 9,
+                                            IsDefault = true,
+                                            ExtraPrice = 0,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 9,
+                                                Name = "Mozzarella"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9003,
+                                            IngredientId = 10,
+                                            IsDefault = true,
+                                            ExtraPrice = 0,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 10,
+                                                Name = "Basilikum"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9003,
+                                            IngredientId = 11,
+                                            IsDefault = false,
+                                            ExtraPrice = 12,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 11,
+                                                Name = "Ekstra mozzarella"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9003,
+                                            IngredientId = 12,
+                                            IsDefault = false,
+                                            ExtraPrice = 8,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 12,
+                                                Name = "Oliven"
+                                            }
+                                        }
                                     }
                                 },
 
@@ -205,6 +386,58 @@ namespace DataAccess.DAO
                                             Amount = 95,
                                             ValidFrom = DateTime.Now.AddDays(-1)
                                         }
+                                    },
+
+                                    Ingredients = new List<FoodItemIngredient>
+                                    {
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9004,
+                                            IngredientId = 8,
+                                            IsDefault = true,
+                                            ExtraPrice = 0,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 8,
+                                                Name = "Tomatsauce"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9004,
+                                            IngredientId = 13,
+                                            IsDefault = true,
+                                            ExtraPrice = 0,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 13,
+                                                Name = "Pepperoni"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9004,
+                                            IngredientId = 9,
+                                            IsDefault = true,
+                                            ExtraPrice = 0,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 9,
+                                                Name = "Mozzarella"
+                                            }
+                                        },
+                                        new FoodItemIngredient
+                                        {
+                                            FoodItemId = 9004,
+                                            IngredientId = 14,
+                                            IsDefault = false,
+                                            ExtraPrice = 10,
+                                            Ingredient = new Ingredient
+                                            {
+                                                IngredientId = 14,
+                                                Name = "Ekstra pepperoni"
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -214,6 +447,6 @@ namespace DataAccess.DAO
             }
         }
     };
-        }
-    }
+  }
+}
 }
