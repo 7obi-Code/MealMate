@@ -171,6 +171,8 @@ public class CartController : Controller
 
         HttpContext.Session.SetObject(CartSessionKey, cart);
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(
+            "Index",
+            "Restaurant",
     }
 }
