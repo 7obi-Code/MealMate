@@ -87,6 +87,33 @@ public class ManagerController : Controller
         return View(restaurant);
     }
 
+    [HttpPost("ToggleOnlineSales")]
+    [ValidateAntiForgeryToken]
+    public IActionResult ToggleOnlineSales()
+    {
+        var restaurantId = HttpContext.Session.GetInt32("RestaurantId");
+
+        if (restaurantId == null)
+            return RedirectToAction(nameof(SelectRestaurant));
+
+        var restaurant = _restaurantApiClient.GetRestaurantMenuById(restaurantId.Value);
+
+        if (restaurant == null)
+            return NotFound();
+
+        bool updated = _restaurantApiClient.UpdateOnlineSales(
+            restaurantId.Value,
+            !restaurant.IsAcceptingOrders
+        );
+
+        TempData[updated ? "Success" : "Error"] =
+            updated
+                ? $"Online sales {(restaurant.IsAcceptingOrders ? "disabled" : "enabled")} successfully."
+                : "Could not update online sales.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
     [HttpGet("FoodItems")]
     public IActionResult FoodItems()
     {

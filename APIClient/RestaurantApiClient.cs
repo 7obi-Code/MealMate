@@ -37,5 +37,22 @@ namespace APIClient
 
             return null;
         }
+        public bool UpdateOnlineSales(int restaurantId, bool isAcceptingOrders)
+        {
+            var request = new RestRequest(
+                $"{restaurantId}/OnlineSales",
+                Method.Put
+            );
+
+            request.AddParameter(
+                "application/json",
+                isAcceptingOrders.ToString().ToLower(),
+                ParameterType.RequestBody
+            );
+
+            var response = _client.Execute(request);
+
+            return response.IsSuccessful;
+        }
     }
 }

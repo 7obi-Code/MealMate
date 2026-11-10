@@ -1,5 +1,4 @@
-﻿
-using DataAccess.Interfaces;
+﻿using DataAccess.Interfaces;
 using DataAccess.Model;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,7 +19,6 @@ namespace API.Controllers
         public ActionResult<List<Restaurant>> GetAllRestaurants()
         {
             var restaurants = _restaurantDao.GetAllRestaurants();
-
             return Ok(restaurants);
         }
 
@@ -31,11 +29,23 @@ namespace API.Controllers
                 _restaurantDao.GetRestaurantMenuById(restaurantId);
 
             if (restaurant == null)
-            {
                 return NotFound();
-            }
 
             return Ok(restaurant);
+        }
+
+        [HttpPut("{restaurantId}/OnlineSales")]
+        public IActionResult UpdateOnlineSales(int restaurantId, [FromBody] bool isAcceptingOrders)
+        {
+            bool updated = _restaurantDao.UpdateOnlineSales(
+                restaurantId,
+                isAcceptingOrders
+            );
+
+            if (!updated)
+                return NotFound();
+
+            return Ok();
         }
     }
 }

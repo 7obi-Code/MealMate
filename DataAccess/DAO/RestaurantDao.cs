@@ -82,6 +82,33 @@ namespace DataAccess.DAO
             }
         }
 
+        public bool UpdateOnlineSales(int restaurantId, bool isAcceptingOrders)
+        {
+            try
+            {
+                using var connection = CreateConnection();
+
+                const string sql = """
+            UPDATE mealmate_v1."Restaurant"
+            SET "isAcceptingOrders" = @IsAcceptingOrders
+            WHERE "restaurantId" = @RestaurantId;
+            """;
+
+                int rowsAffected = connection.Execute(sql, new
+                {
+                    RestaurantId = restaurantId,
+                    IsAcceptingOrders = isAcceptingOrders
+                });
+
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Databasefejl i UpdateOnlineSales: {ex.Message}");
+                return false;
+            }
+        }
+
         private static List<Restaurant> GetTestRestaurants()
         {
             return new List<Restaurant>

@@ -251,15 +251,24 @@
             </strong>
         </div>
 
-        <button type="button"
-                class="checkout-button"
-                disabled="@(!cart.Any())">
-            Gå til bestilling →
-        </button>
+<button type="button"
+        class="checkout-button"
+        disabled="@(!cart.Any() || restaurant == null || !restaurant.IsAcceptingOrders)">
+    Gå til bestilling →
+</button>
 
-        <p class="checkout-note">
-            Bestillingsfunktionen tilføjes senere.
-        </p>
+@if (restaurant != null && !restaurant.IsAcceptingOrders)
+{
+    <p class="checkout-note">
+        Online bestilling er midlertidigt lukket.
+    </p>
+}
+else
+{
+    <p class="checkout-note">
+        Bestillingsfunktionen tilføjes senere.
+    </p>
+}
     </div>
 
 </aside>

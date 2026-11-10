@@ -66,17 +66,45 @@
                 </div>
             </div>
 
+            <!-- Online Ordering -->
             <div class="management-section">
                 <div class="management-section-header">
                     <h5>Online Ordering</h5>
                 </div>
 
                 <div class="management-content">
-                    <p>Control whether customers can place online orders.</p>
 
-                    <button class="btn btn-secondary" disabled>
-                        Coming Soon
-                    </button>
+                    @if (Model.IsAcceptingOrders)
+                    {
+                        <p><strong style="color: green;">Online sales enabled</strong></p>
+                        <p>Customers can currently place orders.</p>
+
+                        <form asp-controller="Manager"
+                              asp-action="ToggleOnlineSales"
+                              method="post">
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit" class="btn btn-danger">
+                                Disable Online Sales
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <p><strong style="color: red;">Online sales disabled</strong></p>
+                        <p>Customers can browse menus but cannot place orders.</p>
+
+                        <form asp-controller="Manager"
+                              asp-action="ToggleOnlineSales"
+                              method="post">
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit" class="btn btn-success">
+                                Enable Online Sales
+                            </button>
+                        </form>
+                    }
+
                 </div>
             </div>
 

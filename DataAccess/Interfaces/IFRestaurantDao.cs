@@ -12,5 +12,7 @@ namespace DataAccess.Interfaces
     {
         Restaurant? GetRestaurantMenuById(int restaurantId);
         List<Restaurant> GetAllRestaurants();
+
+        bool UpdateOnlineSales(int restaurantId, bool isAcceptingOrders);
     }
 }
