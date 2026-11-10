@@ -1,6 +1,8 @@
 @model DataAccess.Model.Restaurant
+@using DataAccess.Model
 @using Website.Extensions
 @using Website.Models
+@using System.Globalization
 
 @{
     ViewData["Title"] = "Menu";
@@ -17,6 +19,7 @@
                 item.Name,
                 item.Description,
                 item.Prices,
+                item.Ingredients,
                 Category = category.Name
             }))
         .ToList() ?? new();
@@ -31,10 +34,8 @@
 
 <div class="home-background"></div>
 
-<!-- Top header -->
 <header class="menu-header">
     <div class="header-inner">
-
         <div class="menu-topline">
             <a asp-controller="Home"
                asp-action="Index"
@@ -54,16 +55,12 @@
         <div class="welcome-container">
             <div class="welcome-box">
                 <h1>@restaurant?.Name</h1>
-                <h2>
-                    Find din favorit, og gør dig klar til et lækkert måltid.
-                </h2>
+                <h2>Find din favorit, og gør dig klar til et lækkert måltid.</h2>
             </div>
         </div>
-
     </div>
 </header>
 
-<!-- Main menu -->
 @if (TempData["CartWarning"] is string warning)
 {
     <div id="cartWarningPopup" class="cart-warning-overlay">
@@ -74,6 +71,7 @@
         </div>
     </div>
 }
+
 <main class="menu-page">
 
     <div class="menu-toolbar">
@@ -104,36 +102,36 @@
                 var currentPrice = item.Prices
                     .OrderByDescending(price => price.ValidFrom)
                     .FirstOrDefault();
+                
+                var ingredients = item.Ingredients?
+                    .Where(i => i.Ingredient != null)
+                    .ToList() ?? new List<FoodItemIngredient>();
+
 
                 <article class="food-card">
+
                     <div class="food-image">
                         <span class="food-emoji">🍽️</span>
                         <span class="food-category">@item.Category</span>
                     </div>
 
                     <div class="food-content">
+
                         <h2>@item.Name</h2>
                         <p>@item.Description</p>
 
-                        <div class="food-footer">
-                            <span class="food-price">
-                                @if (currentPrice != null)
-                                {
-                                    @($"{currentPrice.Amount:0.00} kr.")
-                                }
-                                else
-                                {
-                                    <text>Pris ikke tilgængelig</text>
-                                }
-                            </span>
+                        @if (currentPrice != null)
+                        {
+                            var basePrice = currentPrice.Amount;
 
                             @if (restaurant != null &&
-                                 restaurant.IsAcceptingOrders &&
-                                 currentPrice != null)
+                                 restaurant.IsAcceptingOrders)
                             {
                                 <form asp-controller="Cart"
                                       asp-action="Add"
-                                      method="post">
+                                      method="post"
+                                      class="customize-form">
+
                                     @Html.AntiForgeryToken()
 
                                     <input type="hidden"
@@ -148,27 +146,128 @@
                                            name="quantity"
                                            value="1" />
 
-                                    <button type="submit"
-                                            class="add-button">
-                                        + Tilføj
-                                    </button>
+                                    <input type="hidden"
+                                           name="customizationSubmitted"
+                                           value="true" />
+
+                                    <div class="food-footer">
+
+                                        <span class="food-price dynamic-price"
+                                              data-base-price="@basePrice.ToString(CultureInfo.InvariantCulture)">
+                                            @basePrice.ToString("0.00") kr.
+                                        </span>
+
+                                        <div class="food-actions">
+
+                                            <!-- Almindelig tilføj-knap -->
+                                            <button type="submit" class="add-button">
+                                                + Tilføj til kurv
+                                            </button>
+
+                                            <button type="button"
+                                                    class="customize-toggle"
+                                                    aria-expanded="false">
+                                                Tilpas ret
+                                            </button>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="ingredient-dropdown hidden">
+
+                                        <h3>Tilpas din ret</h3>
+
+                                        @if (ingredients.Any())
+                                        {
+                                            @foreach (var ingredient in ingredients)
+                                            {
+                                                var defaultQuantity = ingredient.IsDefault ? 1 : 0;
+
+                                                <div class="ingredient-row"
+                                                     data-ingredient-id="@ingredient.IngredientId"
+                                                     data-price="@ingredient.ExtraPrice.ToString(CultureInfo.InvariantCulture)">
+
+                                                    <div class="ingredient-info">
+                                                        <span>@ingredient.Ingredient!.Name</span>
+
+                                                        @if (ingredient.ExtraPrice > 0)
+                                                        {
+                                                            <small>
+                                                                +@ingredient.ExtraPrice.ToString("0.00") kr.
+                                                            </small>
+                                                        }
+                                                        else
+                                                        {
+                                                            <small>Inkluderet</small>
+                                                        }
+                                                    </div>
+
+                                                    <div class="ingredient-controls">
+
+                                                        <button type="button" class="ingredient-minus">
+                                                            −
+                                                        </button>
+
+                                                        <span class="ingredient-quantity">
+                                                            @defaultQuantity
+                                                        </span>
+
+                                                        <button type="button" class="ingredient-plus">
+                                                            +
+                                                        </button>
+
+                                                    </div>
+
+                                                    <input type="hidden"
+                                                           name="selectedIngredientIds"
+                                                           value="@ingredient.IngredientId"
+                                                           class="ingredient-selected"
+                                                           disabled="@(!ingredient.IsDefault)" />
+
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <p class="no-ingredients">
+                                                Ingen ingredienser tilgængelige endnu.
+                                            </p>
+                                        }
+                                    </div>
+
                                 </form>
                             }
-                        </div>
+                            else
+                            {
+                                <div class="food-footer">
+                                    <span class="food-price">
+                                        @basePrice.ToString("0.00") kr.
+                                    </span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <span class="food-price">
+                                Pris ikke tilgængelig
+                            </span>
+                        }
+
                     </div>
                 </article>
             }
+
         </div>
     }
 
 </main>
 
-<!-- Dark overlay behind the cart -->
+<!-- Overlay bag kurven -->
 <div class="cart-overlay @(cartOpen ? "is-visible" : "")"
      id="cartOverlay">
 </div>
 
-<!-- Slide-out shopping cart -->
+<!-- Slide-out kurv -->
 <aside class="cart-panel @(cartOpen ? "is-open" : "")"
        id="cartPanel"
        aria-label="Indkøbskurv"
@@ -191,6 +290,7 @@
     </div>
 
     <div class="cart-items" id="cartItems">
+
         @if (!cart.Any())
         {
             <div class="cart-empty">
@@ -207,6 +307,35 @@
                     <div class="cart-item-info">
                         <h3>@item.Name</h3>
 
+                        @if (item.SelectedIngredients.Any())
+                        {
+                            <div class="cart-ingredients">
+                                <strong>Tilpasninger:</strong>
+
+                                @foreach (var ingredient in item.SelectedIngredients)
+                                {
+                                    <span>
+                                        @ingredient.Name
+                                        @if (ingredient.ExtraPrice > 0)
+                                        {
+                                            <text>(+@ingredient.ExtraPrice.ToString("0.00") kr.)</text>
+                                        }
+                                    </span>
+                                }
+                            </div>
+                        }
+                        @if (item.RemovedIngredients.Any())
+                        {
+                            <div class="cart-ingredients">
+                                <strong>Fravalgt:</strong>
+
+                                @foreach (var ingredient in item.RemovedIngredients)
+                                {
+                                    <span>Uden @ingredient</span>
+                                }
+                            </div>
+                        }
+
                         <span>
                             @item.UnitPrice.ToString("0.00") kr. pr. stk.
                         </span>
@@ -222,6 +351,7 @@
                         <form asp-controller="Cart"
                               asp-action="Remove"
                               method="post">
+
                             @Html.AntiForgeryToken()
 
                             <input type="hidden"
@@ -274,20 +404,15 @@ else
 </aside>
 
 <style>
-    /* Background */
     .home-background {
         position: fixed;
         inset: 0;
-        width: 100%;
-        height: 100%;
         z-index: -1;
-        background: linear-gradient( rgba(0, 0, 0, .25), rgba(0, 0, 0, .25) ), url('/images/sommerland.png') center / cover no-repeat;
+        background: linear-gradient(rgba(0,0,0,.25), rgba(0,0,0,.25)), url('/images/sommerland.png') center / cover no-repeat;
     }
 
-    /* Top header */
     .menu-header {
         width: 100%;
-        margin: 0;
         padding: 1rem 2rem 0;
     }
 
@@ -301,82 +426,67 @@ else
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
-        width: 100%;
         margin-bottom: 1rem;
     }
 
     .back-link {
-        display: inline-block;
         color: white;
         text-decoration: none;
         font-weight: 600;
-        text-shadow: 1px 1px 3px rgba(0, 0, 0, .5);
+        text-shadow: 1px 1px 3px rgba(0,0,0,.5);
     }
 
         .back-link:hover {
             text-decoration: underline;
         }
 
-    /* Cart button at the top right */
     .cart-toggle {
         margin-left: auto;
-        flex-shrink: 0;
         border: 0;
         border-radius: 12px;
         background: #36784a;
         color: white;
         padding: .75rem 1.25rem;
         font-weight: 700;
-        font-size: 1rem;
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, .2);
-        transition: background .2s ease;
     }
 
         .cart-toggle:hover {
             background: #285e39;
         }
 
-    /* Restaurant heading */
     .welcome-container {
         display: flex;
         justify-content: center;
-        width: 100%;
         padding: 0 1rem;
         margin-bottom: 1.5rem;
     }
 
     .welcome-box {
-        width: fit-content;
         max-width: 90%;
         padding: 1rem 2rem;
-        background: rgba(20, 35, 25, .65);
-        border: 2px solid rgba(255, 255, 255, .8);
+        background: rgba(20,35,25,.65);
+        border: 2px solid rgba(255,255,255,.8);
         border-radius: 24px;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
-        backdrop-filter: blur(6px);
         color: white;
         text-align: center;
+        box-shadow: 0 6px 18px rgba(0,0,0,.3);
+        backdrop-filter: blur(6px);
     }
 
         .welcome-box h1 {
             color: white;
-            font-size: clamp(1.4rem, 3vw, 2.2rem);
+            font-size: clamp(1.4rem,3vw,2.2rem);
             font-weight: 800;
-            letter-spacing: .3px;
-            text-shadow: 2px 3px 5px rgba(0, 0, 0, .6);
             margin: 0 0 .5rem;
         }
 
         .welcome-box h2 {
             color: white;
-            font-size: clamp(1rem, 2vw, 1.4rem);
-            font-weight: 600;
-            text-shadow: 1px 2px 4px rgba(0, 0, 0, .6);
+            font-size: clamp(1rem,2vw,1.4rem);
             margin: 0;
         }
 
-    /* Main menu */
     .menu-page {
         max-width: 1500px;
         margin: 0 auto;
@@ -390,8 +500,7 @@ else
         gap: 1rem;
         margin-bottom: 1.25rem;
         color: white;
-        font-size: .9rem;
-        text-shadow: 1px 1px 3px rgba(0, 0, 0, .5);
+        text-shadow: 1px 1px 3px rgba(0,0,0,.5);
     }
 
     .menu-count {
@@ -404,7 +513,6 @@ else
         border-radius: 20px;
         padding: .4rem .8rem;
         font-weight: 600;
-        text-shadow: none;
     }
 
     .no-food {
@@ -414,10 +522,9 @@ else
         color: #24382a;
     }
 
-    /* Food grid */
     .food-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(3,minmax(0,1fr));
         gap: 1.5rem;
     }
 
@@ -427,13 +534,13 @@ else
         border: 1px solid #e7ebe7;
         border-radius: 18px;
         background: white;
-        box-shadow: 0 5px 18px rgba(24, 48, 30, .06);
+        box-shadow: 0 5px 18px rgba(24,48,30,.06);
         transition: transform .2s ease, box-shadow .2s ease;
     }
 
         .food-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 28px rgba(24, 48, 30, .12);
+            box-shadow: 0 12px 28px rgba(24,48,30,.12);
         }
 
     .food-image {
@@ -441,7 +548,7 @@ else
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #edf4e9, #faf1df);
+        background: linear-gradient(135deg,#edf4e9,#faf1df);
         position: relative;
     }
 
@@ -454,7 +561,7 @@ else
         top: .75rem;
         left: .75rem;
         padding: .3rem .65rem;
-        background: rgba(255, 255, 255, .9);
+        background: rgba(255,255,255,.9);
         color: #376b49;
         border-radius: 20px;
         font-size: .75rem;
@@ -479,7 +586,6 @@ else
             font-size: .92rem;
             line-height: 1.5;
             margin-bottom: 1.25rem;
-            overflow-wrap: anywhere;
         }
 
     .food-footer {
@@ -497,12 +603,101 @@ else
         white-space: nowrap;
     }
 
+    .customize-form {
+        width: 100%;
+    }
+
+    .customize-toggle {
+        border: 1px solid #36784a;
+        border-radius: 10px;
+        background: white;
+        color: #36784a;
+        padding: .65rem .9rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+        .customize-toggle:hover {
+            background: #edf4e9;
+        }
+
+    .ingredient-dropdown {
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 1px solid #e0e8df;
+        border-radius: 12px;
+        background: #f8faf7;
+    }
+
+        .ingredient-dropdown h3 {
+            margin-bottom: 1rem;
+            color: #24382a;
+            font-size: 1.1rem;
+        }
+
+    .ingredient-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+        padding: .75rem 0;
+        border-bottom: 1px solid #e1e8df;
+    }
+
+    .ingredient-info {
+        display: flex;
+        flex-direction: column;
+        gap: .2rem;
+        min-width: 0;
+    }
+
+        .ingredient-info span {
+            color: #24382a;
+            font-weight: 600;
+        }
+
+        .ingredient-info small {
+            color: #68736b;
+        }
+
+    .ingredient-controls {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+        flex-shrink: 0;
+    }
+
+        .ingredient-controls button {
+            width: 32px;
+            height: 32px;
+            border: 0;
+            border-radius: 8px;
+            background: #36784a;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+            .ingredient-controls button:hover {
+                background: #285e39;
+            }
+
+    .ingredient-quantity {
+        min-width: 18px;
+        text-align: center;
+        font-weight: 700;
+        color: #24382a;
+    }
+
     .add-button {
+        width: 100%;
+        margin-top: 1rem;
         border: 0;
         border-radius: 10px;
         background: #36784a;
         color: white;
-        padding: .65rem .9rem;
+        padding: .75rem .9rem;
         font-weight: 700;
         cursor: pointer;
     }
@@ -511,11 +706,15 @@ else
             background: #285e39;
         }
 
-    /* Dark overlay when cart is open */
+    .no-ingredients {
+        color: #68736b;
+        font-size: .9rem;
+    }
+
     .cart-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(20, 30, 22, .35);
+        background: rgba(20,30,22,.35);
         opacity: 0;
         visibility: hidden;
         transition: opacity .25s ease, visibility .25s ease;
@@ -527,16 +726,15 @@ else
             visibility: visible;
         }
 
-    /* Slide-out cart */
     .cart-panel {
         position: fixed;
         top: 0;
         right: 0;
-        width: min(430px, 100%);
+        width: min(430px,100%);
         height: 100dvh;
         background: white;
         z-index: 1050;
-        box-shadow: -12px 0 35px rgba(0, 0, 0, .15);
+        box-shadow: -12px 0 35px rgba(0,0,0,.15);
         display: flex;
         flex-direction: column;
         transform: translateX(105%);
@@ -628,6 +826,16 @@ else
             color: #24382a;
         }
 
+    .cart-ingredients {
+        margin: .5rem 0;
+        font-size: .85rem;
+        color: #68736b;
+    }
+
+        .cart-ingredients span {
+            margin: .2rem 0;
+        }
+
     .cart-item-actions {
         display: flex;
         flex-direction: column;
@@ -645,7 +853,6 @@ else
         text-decoration: underline;
     }
 
-    /* Cart footer */
     .cart-footer {
         border-top: 1px solid #e7ebe7;
         padding: 1.5rem;
@@ -688,10 +895,78 @@ else
         font-size: .8rem;
     }
 
-    /* Responsive design */
+    /* Warning popup */
+    .cart-warning-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(0,0,0,.55);
+        animation: warningFadeIn .25s ease;
+    }
+
+    .cart-warning-popup {
+        width: min(450px,100%);
+        padding: 2rem;
+        border-radius: 20px;
+        background: white;
+        color: #24382a;
+        text-align: center;
+        box-shadow: 0 15px 50px rgba(0,0,0,.3);
+        animation: warningPopIn .3s ease;
+    }
+
+    .cart-warning-icon {
+        font-size: 3rem;
+        margin-bottom: .5rem;
+    }
+
+    .cart-warning-popup h2 {
+        margin-bottom: .75rem;
+        font-weight: 800;
+    }
+
+    .cart-warning-popup p {
+        margin: 0;
+        line-height: 1.6;
+        color: #555;
+    }
+
+    @@keyframes warningFadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes warningPopIn {
+        from {
+            opacity: 0;
+            transform: scale(.85);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @@keyframes warningFadeOut {
+        to {
+            opacity: 0;
+            transform: scale(.95);
+        }
+    }
+
     @@media (max-width: 800px) {
         .food-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(2,minmax(0,1fr));
         }
     }
 
@@ -731,80 +1006,11 @@ else
             padding: 1rem;
         }
     }
-
-    /* Popup når brugeren prøver at blande restauranter i kurven */
-    .cart-warning-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 2000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        background: rgba(0, 0, 0, 0.55);
-        animation: warningFadeIn 0.25s ease;
-    }
-
-    .cart-warning-popup {
-        width: min(450px, 100%);
-        padding: 2rem;
-        border-radius: 20px;
-        background: #fff;
-        color: #24382a;
-        text-align: center;
-        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
-        animation: warningPopIn 0.3s ease;
-    }
-
-    .cart-warning-icon {
-        font-size: 3rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .cart-warning-popup h2 {
-        margin-bottom: 0.75rem;
-        font-weight: 800;
-    }
-
-    .cart-warning-popup p {
-        margin: 0;
-        line-height: 1.6;
-        color: #555;
-    }
-
-    @@keyframes warningFadeIn {
-        from {
-            opacity: 0;
-        }
-
-        to {
-            opacity: 1;
-        }
-    }
-
-    @@keyframes warningPopIn {
-        from {
-            opacity: 0;
-            transform: scale(0.85);
-        }
-
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-
-    @@keyframes warningFadeOut {
-        to {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-    }
-
 </style>
 
 <script>
     (() => {
+        // Kurv
         const panel = document.getElementById("cartPanel");
         const overlay = document.getElementById("cartOverlay");
         const toggle = document.getElementById("cartToggle");
@@ -813,7 +1019,6 @@ else
         function openCart() {
             panel.classList.add("is-open");
             overlay.classList.add("is-visible");
-
             panel.setAttribute("aria-hidden", "false");
             toggle.setAttribute("aria-expanded", "true");
         }
@@ -821,7 +1026,6 @@ else
         function closeCart() {
             panel.classList.remove("is-open");
             overlay.classList.remove("is-visible");
-
             panel.setAttribute("aria-hidden", "true");
             toggle.setAttribute("aria-expanded", "false");
         }
@@ -848,13 +1052,108 @@ else
             }
         });
 
-            // Luk advarsels-popup efter 3 sekunder
-            const warningPopup = document.getElementById("cartWarningPopup");
-            if (warningPopup) {
-                setTimeout(() => {
-                    warningPopup.style.animation = "warningFadeOut 0.3s ease forwards";
-                    setTimeout(() => warningPopup.remove(), 300);
-                }, 3000);
+        // Tilpasning af food items
+        document.querySelectorAll(".customize-form").forEach(form => {
+            const toggleButton =
+                form.querySelector(".customize-toggle");
+
+            const dropdown =
+                form.querySelector(".ingredient-dropdown");
+
+            const priceElement =
+                form.querySelector(".dynamic-price");
+
+            const basePrice =
+                parseFloat(priceElement.dataset.basePrice);
+
+            
+            toggleButton.addEventListener("click", () => {
+                dropdown.classList.toggle("hidden");
+
+                const isOpen = !dropdown.classList.contains("hidden");
+
+                toggleButton.setAttribute(
+                    "aria-expanded",
+                    isOpen ? "true" : "false"
+                );
+
+                toggleButton.textContent = isOpen
+                    ? "Luk tilpasning ▲"
+                    : "Tilpas ret ▼";
+            });
+
+
+            function updatePrice() {
+                let total = basePrice;
+
+                form.querySelectorAll(".ingredient-row").forEach(row => {
+                    const extraPrice =
+                        parseFloat(row.dataset.price) || 0;
+
+                    const quantity = parseInt(
+                        row.querySelector(".ingredient-quantity")
+                            .textContent
+                    ) || 0;
+
+                    total += extraPrice * quantity;
+                });
+
+                priceElement.textContent =
+                    total.toFixed(2) + " kr.";
             }
-        })();
+
+            function updateIngredient(row, change) {
+                const quantityElement = row.querySelector(".ingredient-quantity");
+                const selectedInput = row.querySelector(".ingredient-selected");
+
+                let quantity = parseInt(quantityElement.textContent) || 0;
+
+                // Hver ingrediens kan vælges 0 eller 1 gang.
+                quantity = Math.max(0, Math.min(1, quantity + change));
+
+                // Opdater det viste antal.
+                quantityElement.textContent = quantity;
+
+                // Send kun ingrediensens ID, hvis den er valgt.
+                if (quantity === 1) {
+                    selectedInput.disabled = false;
+                } else {
+                    selectedInput.disabled = true;
+                }
+
+                updatePrice();
+            }
+
+            form.querySelectorAll(".ingredient-plus").forEach(button => {
+                button.addEventListener("click", () => {
+                    const row = button.closest(".ingredient-row");
+                    updateIngredient(row, 1);
+                });
+            });
+
+            form.querySelectorAll(".ingredient-minus").forEach(button => {
+                button.addEventListener("click", () => {
+                    const row = button.closest(".ingredient-row");
+                    updateIngredient(row, -1);
+                });
+            });
+
+            updatePrice();
+        });
+
+        // Luk warning popup efter 3 sekunder
+        const warningPopup =
+            document.getElementById("cartWarningPopup");
+
+        if (warningPopup) {
+            setTimeout(() => {
+                warningPopup.style.animation =
+                    "warningFadeOut .3s ease forwards";
+
+                setTimeout(() => {
+                    warningPopup.remove();
+                }, 300);
+            }, 3000);
+        }
+    })();
 </script>

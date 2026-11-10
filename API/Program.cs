@@ -14,9 +14,15 @@ var connectionString = builder.Configuration
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' mangler.");
 
-// Register FoodItemDao.
-builder.Services.AddScoped<IFFoodItemDao>(
-    _ => new FoodItemDao(connectionString));
+// Register FoodItemIngredientDao.
+builder.Services.AddScoped<IFFoodItemIngredientDao>(
+    _ => new FoodItemIngredientDao(connectionString));
+
+// Register FoodItemDao and inject FoodItemIngredientDao.
+builder.Services.AddScoped<IFFoodItemDao>(services =>
+    new FoodItemDao(
+        connectionString,
+        services.GetRequiredService<IFFoodItemIngredientDao>()));
 
 // Register MenuDao and inject FoodItemDao.
 builder.Services.AddScoped<IFMenuDao>(services =>

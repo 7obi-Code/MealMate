@@ -9,6 +9,7 @@ namespace Website.Controllers;
 public class CartController : Controller
 {
     private const string CartSessionKey = "MealMateCart";
+
     private readonly RestaurantApiClient _restaurantApiClient;
 
     public CartController(RestaurantApiClient restaurantApiClient)
@@ -27,7 +28,12 @@ public class CartController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Add(int foodItemId, int restaurantId, int quantity = 1)
+    public IActionResult Add(
+        int foodItemId,
+        int restaurantId,
+        int quantity = 1,
+        List<int>? selectedIngredientIds = null,
+        bool customizationSubmitted = false)
     {
         if (quantity < 1)
             quantity = 1;
@@ -48,6 +54,7 @@ public class CartController : Controller
         if (foodItem == null)
             return NotFound();
 
+        // Find rettens aktuelle pris.
         var currentPrice = foodItem.Prices
             .OrderByDescending(price => price.ValidFrom)
             .FirstOrDefault();
@@ -55,10 +62,50 @@ public class CartController : Controller
         if (currentPrice == null)
             return BadRequest("Retten har ingen tilgængelig pris.");
 
+        // Find ingredienserne, der hører til retten.
+        var availableIngredients = foodItem.Ingredients
+            .Where(i => i.Ingredient != null)
+            .ToList();
+
+        // Find kundens valgte ingredienser.
+        var selectedIds = customizationSubmitted
+            ? selectedIngredientIds ?? new List<int>()
+            : availableIngredients
+                .Where(i => i.IsDefault)
+                .Select(i => i.IngredientId)
+                .ToList();
+
+        // Valider ingrediensvalgene.
+        if (selectedIds.Except(
+                availableIngredients.Select(i => i.IngredientId))
+            .Any())
+        {
+            return BadRequest("Ugyldigt ingrediensvalg.");
+        }
+
+        // Opret listen over valgte ingredienser.
+        var selectedIngredients = availableIngredients
+            .Where(i => selectedIds.Contains(i.IngredientId))
+            .Select(i => new CartItemIngredient
+            {
+                IngredientId = i.IngredientId,
+                Name = i.Ingredient!.Name,
+                ExtraPrice = i.ExtraPrice
+            })
+            .ToList();
+
+        // Find standardingredienser, som kunden har fravalgt.
+        var removedIngredients = availableIngredients
+            .Where(i =>
+                i.IsDefault &&
+                !selectedIds.Contains(i.IngredientId))
+            .Select(i => i.Ingredient!.Name)
+            .ToList();
+
         var cart = HttpContext.Session
             .GetObject<List<CartItem>>(CartSessionKey) ?? new();
 
-        // Tjek om kurven allerede indeholder varer fra en anden restaurant
+        // Tjek om kurven indeholder varer fra en anden restaurant.
         if (cart.Any(item => item.RestaurantId != restaurantId))
         {
             TempData["CartWarning"] =
@@ -71,13 +118,22 @@ public class CartController : Controller
                 new { id = restaurantId, cartOpen = true });
         }
 
+        // Find kun en eksisterende linje, hvis ingrediensvalgene er ens.
         var existingItem = cart.FirstOrDefault(item =>
             item.FoodItemId == foodItemId &&
-            item.RestaurantId == restaurantId);
+            item.RestaurantId == restaurantId &&
+            item.SelectedIngredients
+                .Select(i => i.IngredientId)
+                .OrderBy(id => id)
+                .SequenceEqual(
+                    selectedIngredients
+                        .Select(i => i.IngredientId)
+                        .OrderBy(id => id)));
 
         if (existingItem != null)
         {
             existingItem.Quantity += quantity;
+            existingItem.RemovedIngredients = removedIngredients;
         }
         else
         {
@@ -86,14 +142,19 @@ public class CartController : Controller
                 FoodItemId = foodItem.FoodItemId,
                 RestaurantId = restaurantId,
                 Name = foodItem.Name,
-                UnitPrice = currentPrice.Amount,
-                Quantity = quantity
+                BasePrice = currentPrice.Amount,
+                Quantity = quantity,
+                SelectedIngredients = selectedIngredients,
+                RemovedIngredients = removedIngredients
             });
         }
 
+        // Gem kurven i session.
         HttpContext.Session.SetObject(CartSessionKey, cart);
 
-        return RedirectToAction("Index", "Restaurant",
+        return RedirectToAction(
+            "Index",
+            "Restaurant",
             new { id = restaurantId, cartOpen = true });
     }
 
@@ -110,6 +171,8 @@ public class CartController : Controller
 
         HttpContext.Session.SetObject(CartSessionKey, cart);
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(
+            "Index",
+            "Restaurant",
     }
 }

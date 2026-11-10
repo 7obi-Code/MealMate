@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Collections.Generic;
 
 namespace DataAccess.Model
 {
@@ -14,7 +9,7 @@ namespace DataAccess.Model
         public string Description { get; set; } = string.Empty;
         public bool IsAvailable { get; set; }
         public List<Price> Prices { get; set; } = new();
+        public List<FoodItemIngredient> Ingredients { get; set; } = new();
         public int PreparationMinutes { get; set; }
     }
 }
-
