@@ -29,4 +29,35 @@ public class FoodCategoriesController : ControllerBase
 
         return Ok(categoryId);
     }
+
+    [HttpPut("{categoryId}")]
+    public IActionResult UpdateCategory(
+        int categoryId,
+        [FromBody] CreateFoodCategoryRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return BadRequest();
+
+        bool updated = _categoryDao.UpdateCategory(
+            categoryId,
+            request.MenuId,
+            request.Name,
+            request.FoodItemIds);
+
+        if (!updated)
+            return NotFound();
+
+        return Ok();
+    }
+
+    [HttpDelete("{categoryId}")]
+    public IActionResult DeleteCategory(int categoryId)
+    {
+        bool deleted = _categoryDao.DeleteCategory(categoryId);
+
+        if (!deleted)
+            return NotFound();
+
+        return Ok();
+    }
 }

@@ -96,7 +96,8 @@ public class ManagerController : Controller
         if (restaurantId == null)
             return RedirectToAction(nameof(SelectRestaurant));
 
-        var restaurant = _restaurantApiClient.GetRestaurantMenuById(restaurantId.Value);
+        var restaurant = _restaurantApiClient.GetAllRestaurants()
+            .FirstOrDefault(r => r.RestaurantId == restaurantId.Value);
 
         if (restaurant == null)
             return NotFound();
@@ -309,6 +310,91 @@ public class ManagerController : Controller
 
         TempData[created ? "Success" : "Error"] =
             created ? "Category created successfully." : "Could not create category.";
+
+        return RedirectToAction(nameof(Categories));
+    }
+
+    [HttpPost("Categories/Edit/{categoryId}")]
+    [ValidateAntiForgeryToken]
+    public IActionResult EditCategory(
+    int categoryId,
+    CreateFoodCategoryRequest request)
+    {
+        var restaurantId = HttpContext.Session.GetInt32("RestaurantId");
+
+        if (restaurantId == null)
+            return RedirectToAction(nameof(SelectRestaurant));
+
+        var restaurant = _restaurantApiClient.GetRestaurantMenuById(
+            restaurantId.Value);
+
+        if (restaurant == null)
+            return NotFound();
+
+        var menu = restaurant.Menus.FirstOrDefault(
+            m => m.MenuId == request.MenuId);
+
+        if (menu == null)
+            return BadRequest("Invalid menu.");
+
+        bool categoryExists = menu.Categories.Any(
+            c => c.CategoryId == categoryId);
+
+        if (!categoryExists)
+            return NotFound();
+
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return BadRequest("Category name is required.");
+
+        var availableIds = menu.Categories
+            .SelectMany(c => c.FoodItems)
+            .Select(f => f.FoodItemId)
+            .ToHashSet();
+
+        if (request.FoodItemIds.Any(id => !availableIds.Contains(id)))
+            return BadRequest("Invalid food item.");
+
+        bool updated = _foodCategoryApiClient.UpdateCategory(
+            categoryId,
+            request
+        );
+
+        TempData[updated ? "Success" : "Error"] =
+            updated
+                ? "Category updated successfully."
+                : "Could not update category.";
+
+        return RedirectToAction(nameof(Categories));
+    }
+
+    [HttpPost("Categories/Delete/{categoryId}")]
+    [ValidateAntiForgeryToken]
+    public IActionResult DeleteCategory(int categoryId)
+    {
+        var restaurantId = HttpContext.Session.GetInt32("RestaurantId");
+
+        if (restaurantId == null)
+            return RedirectToAction(nameof(SelectRestaurant));
+
+        var restaurant = _restaurantApiClient.GetRestaurantMenuById(
+            restaurantId.Value);
+
+        if (restaurant == null)
+            return NotFound();
+
+        bool categoryExists = restaurant.Menus
+            .SelectMany(m => m.Categories)
+            .Any(c => c.CategoryId == categoryId);
+
+        if (!categoryExists)
+            return NotFound();
+
+        bool deleted = _foodCategoryApiClient.DeleteCategory(categoryId);
+
+        TempData[deleted ? "Success" : "Error"] =
+            deleted
+                ? "Category deleted successfully. Its food items are now unassigned."
+                : "Could not delete category.";
 
         return RedirectToAction(nameof(Categories));
     }

@@ -1,13 +1,16 @@
-﻿@model DataAccess.Model.Restaurant
+﻿
+@model DataAccess.Model.Restaurant
 
 @{
     ViewData["Title"] = "Manage Categories";
 }
 
 <div class="manager-page">
+
     <a asp-controller="Manager" asp-action="Index">← Back to Dashboard</a>
 
     <h1>Manage Categories</h1>
+    <p>Organize your food items into menu categories.</p>
 
     @if (TempData["Success"] != null)
     {
@@ -19,72 +22,229 @@
         <p class="error">@TempData["Error"]</p>
     }
 
-    <div class="category-panel">
-        <h2>Create Category</h2>
-        <p>Create a category and select the food items that belong to it.</p>
+    <!-- 1. CREATE CATEGORY -->
+    <details class="category-panel">
+        <summary>
+            <span>Create Category</span>
+            <span class="dropdown-icon">▼</span>
+        </summary>
 
-        <form asp-action="CreateCategory" method="post">
-            @Html.AntiForgeryToken()
+        <div class="category-content">
+            <p>Create a category, select its menu and assign food items.</p>
 
-            <label>Menu</label>
-            <select name="MenuId" id="menuSelect" required>
+            <form asp-action="CreateCategory"
+                  method="post"
+                  onsubmit="return confirm('Are you sure you want to create this category?');">
+
+                @Html.AntiForgeryToken()
+
+                <label>Menu</label>
+                <select name="MenuId" id="createMenuSelect" required>
+                    @foreach (var menu in Model.Menus)
+                    {
+                        <option value="@menu.MenuId">@menu.Name</option>
+                    }
+                </select>
+
+                <label>Category Name</label>
+                <input type="text"
+                       name="Name"
+                       maxlength="100"
+                       required
+                       placeholder="e.g. Burgers" />
+
+                <h3>Select Food Items</h3>
+                <p class="help-text">
+                    Select the food items that should belong to this category.
+                    Items can be moved from their current category.
+                </p>
+
                 @foreach (var menu in Model.Menus)
                 {
-                    <option value="@menu.MenuId">@menu.Name</option>
+                    <div class="create-food-group"
+                         data-menu="@menu.MenuId">
+
+                        @foreach (var category in menu.Categories)
+                        {
+                            @foreach (var item in category.FoodItems)
+                            {
+                                <label class="food-option">
+                                    <input type="checkbox"
+                                           name="FoodItemIds"
+                                           value="@item.FoodItemId" />
+
+                                    @item.Name
+
+                                    <span>Currently: @category.Name</span>
+                                </label>
+                            }
+                        }
+                    </div>
                 }
-            </select>
 
-            <label>Category Name</label>
-            <input type="text" name="Name" maxlength="100" required
-                   placeholder="e.g. Burgers" />
+                <button type="submit" class="btn-create">
+                    Create Category
+                </button>
+            </form>
+        </div>
+    </details>
 
-            <h3>Select Food Items</h3>
+
+    <!-- 2. EDIT CATEGORY -->
+    <details class="category-panel">
+        <summary>
+            <span>Edit Category</span>
+            <span class="dropdown-icon">▼</span>
+        </summary>
+
+        <div class="category-content">
+
+            <p>Select an existing category to edit its name and food items.</p>
+
+            <form method="post"
+                  id="editCategoryForm"
+                  onsubmit="return confirm('Are you sure you want to save these changes?');">
+
+                @Html.AntiForgeryToken()
+
+                <label>Select Category</label>
+
+                <select id="editCategorySelect" required>
+                    <option value="">Choose a category...</option>
+
+                    @foreach (var menu in Model.Menus)
+                    {
+                        <optgroup label="@menu.Name">
+                            @foreach (var category in menu.Categories)
+                            {
+                                <option value="@category.CategoryId"
+                                        data-menu="@menu.MenuId">
+                                    @category.Name
+                                </option>
+                            }
+                        </optgroup>
+                    }
+                </select>
+
+                <input type="hidden"
+                       name="MenuId"
+                       id="editMenuId" />
+
+                <label>Category Name</label>
+                <input type="text"
+                       name="Name"
+                       id="editCategoryName"
+                       maxlength="100"
+                       required
+                       placeholder="Category name" />
+
+                <h3>Food Items</h3>
+                <p class="help-text">
+                    Checked items will belong to this category after saving.
+                    Unchecked items currently in this category will become unassigned.
+                </p>
+
+                @foreach (var menu in Model.Menus)
+                {
+                    <div class="edit-food-group"
+                         data-menu="@menu.MenuId">
+
+                        @foreach (var category in menu.Categories)
+                        {
+                            @foreach (var item in category.FoodItems)
+                            {
+                                <label class="food-option">
+                                    <input type="checkbox"
+                                           name="FoodItemIds"
+                                           value="@item.FoodItemId"
+                                           data-category="@category.CategoryId" />
+
+                                    @item.Name
+
+                                    <span>Currently: @category.Name</span>
+                                </label>
+                            }
+                        }
+                    </div>
+                }
+
+                <button type="submit" class="btn-edit">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </details>
+
+
+    <!-- 3. SHOW EXISTING / DELETE -->
+    <details class="category-panel">
+        <summary>
+            <span>Show Existing / Delete</span>
+            <span class="dropdown-icon">▼</span>
+        </summary>
+
+        <div class="category-content">
+
+            <p>View all existing categories and their food items.</p>
 
             @foreach (var menu in Model.Menus)
             {
-                <div class="menu-food-items" data-menu="@menu.MenuId">
+                <div class="menu-group">
+                    <h3>@menu.Name</h3>
+
+                    @if (!menu.Categories.Any())
+                    {
+                        <p class="help-text">No categories in this menu.</p>
+                    }
+
                     @foreach (var category in menu.Categories)
                     {
-                        @foreach (var item in category.FoodItems)
-                        {
-                            <label class="food-option">
-                                <input type="checkbox"
-                                       name="FoodItemIds"
-                                       value="@item.FoodItemId" />
-                                @item.Name
-                                <span>(Currently: @category.Name)</span>
-                            </label>
-                        }
+                        <div class="existing-category">
+
+                            <div class="category-header">
+                                <div>
+                                    <strong>@category.Name</strong>
+                                    <span class="item-count">
+                                        @category.FoodItems.Count item(s)
+                                    </span>
+                                </div>
+
+                                <form asp-action="DeleteCategory"
+                                      asp-route-categoryId="@category.CategoryId"
+                                      method="post"
+                                      onsubmit="return confirm('Are you sure you want to delete @category.Name? Its food items will become unassigned.');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit" class="btn-delete">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+
+                            @if (category.FoodItems.Any())
+                            {
+                                <ul>
+                                    @foreach (var item in category.FoodItems)
+                                    {
+                                        <li>@item.Name</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="help-text">No food items assigned.</p>
+                            }
+
+                        </div>
                     }
                 </div>
             }
+        </div>
+    </details>
 
-            <button type="submit">Create Category</button>
-        </form>
-    </div>
-
-    <div class="category-panel">
-        <h2>Existing Categories</h2>
-
-        @foreach (var menu in Model.Menus)
-        {
-            <h3>@menu.Name</h3>
-
-            @foreach (var category in menu.Categories)
-            {
-                <div class="existing-category">
-                    <strong>@category.Name</strong>
-                    <ul>
-                        @foreach (var item in category.FoodItems)
-                        {
-                            <li>@item.Name</li>
-                        }
-                    </ul>
-                </div>
-            }
-        }
-    </div>
 </div>
+
 
 <style>
     .manager-page {
@@ -93,68 +253,162 @@
         padding: 2rem;
     }
 
+    .manager-page h1 {
+        margin-top: 1.5rem;
+        color: #263b2a;
+    }
+
     .category-panel {
-        margin-top: 2rem;
-        padding: 2rem;
+        margin-top: 1.5rem;
         background: white;
         border: 2px solid #d3e0d2;
         border-radius: 14px;
+        overflow: hidden;
     }
 
-        .category-panel h2 {
-            color: #263b2a;
-        }
-
-        .category-panel form {
-            display: flex;
-            flex-direction: column;
-            gap: .8rem;
-        }
-
-        .category-panel input[type="text"],
-        .category-panel select {
-            padding: .8rem;
-            border: 1px solid #cbd8ca;
-            border-radius: 8px;
-        }
-
-    .food-option {
-        display: block;
-        padding: .7rem;
-        margin: .3rem 0;
-        background: #f5f8f3;
-        border-radius: 8px;
+    .category-panel summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.3rem 1.5rem;
+        background: #f0f6ed;
+        cursor: pointer;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #263b2a;
+        list-style: none;
     }
 
-        .food-option span {
-            color: #687568;
-            font-size: .85rem;
-        }
-
-    .menu-food-items {
+    .category-panel summary::-webkit-details-marker {
         display: none;
     }
 
-        .menu-food-items.active {
-            display: block;
-        }
+    .category-panel[open] .dropdown-icon {
+        transform: rotate(180deg);
+    }
 
-    .category-panel button {
+    .dropdown-icon {
+        transition: transform .2s;
+        font-size: .9rem;
+    }
+
+    .category-content {
+        padding: 1.5rem;
+    }
+
+    .category-content form {
+        display: flex;
+        flex-direction: column;
+        gap: .8rem;
+    }
+
+    .category-content label:not(.food-option) {
+        font-weight: bold;
+    }
+
+    .category-content input[type="text"],
+    .category-content select {
+        width: 100%;
+        padding: .8rem;
+        border: 1px solid #cbd8ca;
+        border-radius: 8px;
+        background: white;
+    }
+
+    .category-content h3 {
+        margin-top: 1.5rem;
+        color: #263b2a;
+    }
+
+    .help-text {
+        color: #687568;
+        font-size: .9rem;
+    }
+
+    .food-option {
+        display: block;
+        padding: .8rem;
+        margin: .4rem 0;
+        background: #f5f8f3;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .food-option input {
+        margin-right: .5rem;
+    }
+
+    .food-option span {
+        display: block;
+        margin-left: 1.7rem;
+        color: #687568;
+        font-size: .85rem;
+    }
+
+    .create-food-group,
+    .edit-food-group {
+        display: none;
+    }
+
+    .create-food-group.active,
+    .edit-food-group.active {
+        display: block;
+    }
+
+    .category-content button {
         padding: .8rem 1.2rem;
         border: none;
         border-radius: 8px;
-        background: #476b4a;
         color: white;
         font-weight: bold;
         cursor: pointer;
     }
 
+    .btn-create {
+        background: #476b4a;
+    }
+
+    .btn-edit {
+        background: #456b91;
+    }
+
+    .btn-delete {
+        background: #b94343;
+    }
+
+    .menu-group {
+        margin-top: 1.5rem;
+    }
+
     .existing-category {
         padding: 1rem;
-        margin: .7rem 0;
+        margin: .8rem 0;
         background: #f5f8f3;
         border: 1px solid #d3e0d2;
         border-radius: 8px;
+    }
+
+    .category-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .category-header form {
+        margin: 0;
+    }
+
+    .item-count {
+        display: block;
+        margin-top: .3rem;
+        color: #687568;
+        font-size: .85rem;
+    }
+
+    .existing-category ul {
+        margin-bottom: 0;
+        padding-left: 1.5rem;
     }
 
     .success {
@@ -164,15 +418,28 @@
     .error {
         color: darkred;
     }
+
+    @@media (max-width: 600px) {
+        .manager-page {
+            padding: 1rem;
+        }
+
+        .category-header {
+            align-items: flex-start;
+        }
+    }
 </style>
 
-<script>
-    const menuSelect = document.getElementById("menuSelect");
-    const menuGroups = document.querySelectorAll(".menu-food-items");
 
-    function updateMenuItems() {
-        menuGroups.forEach(group => {
-            const selected = group.dataset.menu === menuSelect.value;
+<script>
+    // CREATE CATEGORY
+    const createMenuSelect = document.getElementById("createMenuSelect");
+    const createGroups = document.querySelectorAll(".create-food-group");
+
+    function updateCreateItems() {
+        createGroups.forEach(group => {
+            const selected = group.dataset.menu === createMenuSelect.value;
+
             group.classList.toggle("active", selected);
 
             if (!selected) {
@@ -182,6 +449,47 @@
         });
     }
 
-    menuSelect.addEventListener("change", updateMenuItems);
-    updateMenuItems();
+    createMenuSelect.addEventListener("change", updateCreateItems);
+    updateCreateItems();
+
+
+    // EDIT CATEGORY
+    const editCategorySelect = document.getElementById("editCategorySelect");
+    const editCategoryName = document.getElementById("editCategoryName");
+    const editMenuId = document.getElementById("editMenuId");
+    const editForm = document.getElementById("editCategoryForm");
+    const editGroups = document.querySelectorAll(".edit-food-group");
+
+    function updateEditCategory() {
+        const selectedOption = editCategorySelect.selectedOptions[0];
+        const categoryId = editCategorySelect.value;
+
+        editGroups.forEach(group => {
+            const selectedMenu = selectedOption?.dataset.menu;
+            const isSelectedMenu = group.dataset.menu === selectedMenu;
+
+            group.classList.toggle("active", !!categoryId && isSelectedMenu);
+
+            group.querySelectorAll("input[type=checkbox]").forEach(checkbox => {
+                checkbox.checked =
+                    !!categoryId &&
+                    isSelectedMenu &&
+                    checkbox.dataset.category === categoryId;
+            });
+        });
+
+        editMenuId.value = selectedOption?.dataset.menu || "";
+
+        if (!categoryId) {
+            editCategoryName.value = "";
+            editForm.action = "";
+            return;
+        }
+
+        editCategoryName.value = selectedOption.textContent.trim();
+        editForm.action = `/Manager/Categories/Edit/${categoryId}`;
+    }
+
+    editCategorySelect.addEventListener("change", updateEditCategory);
+
 </script>

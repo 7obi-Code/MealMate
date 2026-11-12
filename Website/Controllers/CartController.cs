@@ -173,6 +173,6 @@ public class CartController : Controller
 
         return RedirectToAction(
             "Index",
-            "Restaurant",
+            "Restaurant");
     }
 }
