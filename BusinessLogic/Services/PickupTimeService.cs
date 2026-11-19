@@ -1,78 +1,126 @@
 ﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using BusinessLogic.Interfaces;
 using DataAccess.Model;
 
 namespace BusinessLogic.Services
 {
-    // Handles the business logic for calculating pickup times
-    // and assigning food items to available kitchen time slots.
     public class PickupTimeService : IFPickupTimeService
     {
-        // Calculates when an order is expected to be ready.
-        public DateTime CalculateEstimatedReadyTime(Order order)
-        {
-            // TODO: Calculate the estimated pickup time based on
-            // kitchen station capacity and available time slots.
-            throw new NotImplementedException();
-        }
-
-        // Calculates how many food items can be assigned
-        // to a specific kitchen station time slot.
+        // Beregner hvor mange retter der kan placeres
+        // i et bestemt tidsrum.
         public int CalculateQuantityToAssign(
             KitchenStation station,
             StationCapacitySlot slot,
             int requestedQuantity)
         {
-            // Get the remaining capacity in the current time slot.
-            int availableCapacity = slot.GetAvailableCapacity(station);
+            if (requestedQuantity <= 0)
+                return 0;
 
-            // Return the smallest value to ensure that we do not
-            // assign more items than requested or available.
+            int availableCapacity =
+                slot.GetAvailableCapacity(station);
+
             return Math.Min(requestedQuantity, availableCapacity);
         }
 
-        // Calculates how food items can be assigned
-        // across the available time slots of a kitchen station.
+        // Fordeler retter på stationens tidsrum.
         public Dictionary<DateTime, int> CalculateSlotAssignment(
             KitchenStation station,
-            int requestedQuantity)
+            int requestedQuantity,
+            DateTime? earliestStartTime = null)
         {
-            // Stores the quantity of food items assigned to each time slot.
+            if (station == null)
+                throw new ArgumentNullException(nameof(station));
+
+            if (requestedQuantity < 0)
+                throw new ArgumentOutOfRangeException(
+                    nameof(requestedQuantity));
+
             var assignment = new Dictionary<DateTime, int>();
 
-            // Tracks how many food items still need to be assigned.
             int remainingQuantity = requestedQuantity;
 
-            // Process the time slots in chronological order.
-            foreach (var slot in station.CapacitySlots.OrderBy(s => s.StartTime))
+            foreach (var slot in station.CapacitySlots
+                         .Where(s => earliestStartTime == null ||
+                                     s.StartTime >= earliestStartTime.Value)
+                         .OrderBy(s => s.StartTime))
             {
-                // Stop when all requested food items have been assigned.
                 if (remainingQuantity <= 0)
                     break;
 
-                // Calculate how many items can be assigned to this slot.
                 int quantityToAssign = CalculateQuantityToAssign(
                     station,
                     slot,
-                    remainingQuantity
-                );
+                    remainingQuantity);
 
-                // Skip this slot if no capacity is available.
-                if (quantityToAssign == 0)
+                if (quantityToAssign <= 0)
                     continue;
 
-                // Store the quantity assigned to this time slot.
                 assignment[slot.StartTime] = quantityToAssign;
 
-                // Subtract the assigned quantity from the remaining items.
                 remainingQuantity -= quantityToAssign;
             }
 
-            // Return the calculated assignment across existing time slots.
+            if (remainingQuantity > 0)
+            {
+                throw new InvalidOperationException(
+                    $"Køkkenstationen '{station.Name}' har ikke nok kapacitet. " +
+                    $"{remainingQuantity} retter kunne ikke fordeles.");
+            }
+
             return assignment;
+        }
+
+        // Beregner hvornår hele ordren forventes at være klar.
+        public DateTime CalculateEstimatedReadyTime(
+            Order order,
+            KitchenStation station)
+        {
+            if (order == null)
+                throw new ArgumentNullException(nameof(order));
+
+            if (station == null)
+                throw new ArgumentNullException(nameof(station));
+
+            if (order.OrderLines == null || !order.OrderLines.Any())
+                return order.CreatedAt;
+
+            if (order.OrderLines.Any(line => line.Quantity <= 0))
+            {
+                throw new InvalidOperationException(
+                    "Ordren indeholder en ugyldig mængde.");
+            }
+
+            // Beregn det samlede antal retter.
+            int totalQuantity = order.OrderLines.Sum(
+                line => line.Quantity);
+
+            // Find den længste tilberedningstid blandt retterne.
+            int longestPreparationTime = order.OrderLines
+                .Max(line => Math.Max(
+                    0,
+                    line.FoodItem.PreparationMinutes));
+
+            // Fordel retterne på stationens ledige tidsrum.
+            var assignment = CalculateSlotAssignment(
+                station,
+                totalQuantity,
+                order.CreatedAt);
+
+            // Find det sidste tidsrum, der er blevet tildelt.
+            DateTime lastAssignedSlot = assignment.Keys.Max();
+
+            // Beregn hvornår dette tidsrum slutter.
+            DateTime capacityReadyTime = lastAssignedSlot.AddMinutes(
+                station.IntervalMinutes);
+
+            // Beregn tilberedningstiden fra ordrens oprettelse.
+            DateTime preparationReadyTime = order.CreatedAt.AddMinutes(
+                longestPreparationTime);
+
+            // Hele ordren er først klar, når begge beregninger er færdige.
+            return capacityReadyTime > preparationReadyTime
+                ? capacityReadyTime
+                : preparationReadyTime;
         }
     }
 }

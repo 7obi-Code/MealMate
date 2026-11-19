@@ -1,13 +1,25 @@
-﻿using DataAccess.Model;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
+using DataAccess.Model;
 
 namespace BusinessLogic.Interfaces
 {
     public interface IFPickupTimeService
     {
-        // Calculates when an order is estimated to be ready for pickup based on the restaurant's kitchen stations and their capacity.
-        DateTime CalculateEstimatedReadyTime(Order order);
+        // Beregner forventet afhentningstid.
+        DateTime CalculateEstimatedReadyTime(
+            Order order,
+            KitchenStation station);
+
+        // Beregner antal retter, der kan placeres i et tidsrum.
+        int CalculateQuantityToAssign(
+            KitchenStation station,
+            StationCapacitySlot slot,
+            int requestedQuantity);
+
+        // Fordeler retter på stationens ledige tidsrum.
+        Dictionary<DateTime, int> CalculateSlotAssignment(
+            KitchenStation station,
+            int requestedQuantity,
+            DateTime? earliestStartTime = null);
     }
 }

@@ -1,5 +1,7 @@
 ﻿
 using APIClient;
+using BusinessLogic.Interfaces;
+using DataAccess.Model;
 using Microsoft.AspNetCore.Mvc;
 using Website.Extensions;
 using Website.Models;
@@ -9,12 +11,17 @@ namespace Website.Controllers;
 public class CartController : Controller
 {
     private const string CartSessionKey = "MealMateCart";
+    private const string WaitSessionKey = "MealMateEstimatedWaitMinutes";
 
     private readonly RestaurantApiClient _restaurantApiClient;
+    private readonly IFPickupTimeService _pickupTimeService;
 
-    public CartController(RestaurantApiClient restaurantApiClient)
+    public CartController(
+        RestaurantApiClient restaurantApiClient,
+        IFPickupTimeService pickupTimeService)
     {
         _restaurantApiClient = restaurantApiClient;
+        _pickupTimeService = pickupTimeService;
     }
 
     [HttpGet]
@@ -54,7 +61,6 @@ public class CartController : Controller
         if (foodItem == null)
             return NotFound();
 
-        // Find rettens aktuelle pris.
         var currentPrice = foodItem.Prices
             .OrderByDescending(price => price.ValidFrom)
             .FirstOrDefault();
@@ -62,12 +68,10 @@ public class CartController : Controller
         if (currentPrice == null)
             return BadRequest("Retten har ingen tilgængelig pris.");
 
-        // Find ingredienserne, der hører til retten.
         var availableIngredients = foodItem.Ingredients
             .Where(i => i.Ingredient != null)
             .ToList();
 
-        // Find kundens valgte ingredienser.
         var selectedIds = customizationSubmitted
             ? selectedIngredientIds ?? new List<int>()
             : availableIngredients
@@ -75,7 +79,6 @@ public class CartController : Controller
                 .Select(i => i.IngredientId)
                 .ToList();
 
-        // Valider ingrediensvalgene.
         if (selectedIds.Except(
                 availableIngredients.Select(i => i.IngredientId))
             .Any())
@@ -83,7 +86,6 @@ public class CartController : Controller
             return BadRequest("Ugyldigt ingrediensvalg.");
         }
 
-        // Opret listen over valgte ingredienser.
         var selectedIngredients = availableIngredients
             .Where(i => selectedIds.Contains(i.IngredientId))
             .Select(i => new CartItemIngredient
@@ -94,7 +96,6 @@ public class CartController : Controller
             })
             .ToList();
 
-        // Find standardingredienser, som kunden har fravalgt.
         var removedIngredients = availableIngredients
             .Where(i =>
                 i.IsDefault &&
@@ -105,7 +106,6 @@ public class CartController : Controller
         var cart = HttpContext.Session
             .GetObject<List<CartItem>>(CartSessionKey) ?? new();
 
-        // Tjek om kurven indeholder varer fra en anden restaurant.
         if (cart.Any(item => item.RestaurantId != restaurantId))
         {
             TempData["CartWarning"] =
@@ -118,7 +118,6 @@ public class CartController : Controller
                 new { id = restaurantId, cartOpen = true });
         }
 
-        // Find kun en eksisterende linje, hvis ingrediensvalgene er ens.
         var existingItem = cart.FirstOrDefault(item =>
             item.FoodItemId == foodItemId &&
             item.RestaurantId == restaurantId &&
@@ -149,8 +148,17 @@ public class CartController : Controller
             });
         }
 
-        // Gem kurven i session.
+        // Gem kurven.
         HttpContext.Session.SetObject(CartSessionKey, cart);
+
+        // Beregn og gem forventet ventetid.
+        int waitMinutes = CalculateEstimatedWaitMinutes(
+            cart,
+            restaurantId);
+
+        HttpContext.Session.SetInt32(
+            WaitSessionKey,
+            waitMinutes);
 
         return RedirectToAction(
             "Index",
@@ -171,8 +179,95 @@ public class CartController : Controller
 
         HttpContext.Session.SetObject(CartSessionKey, cart);
 
+        // Opdater ventetiden efter fjernelse.
+        int waitMinutes = CalculateEstimatedWaitMinutes(
+            cart,
+            restaurantId);
+
+        HttpContext.Session.SetInt32(
+            WaitSessionKey,
+            waitMinutes);
+
         return RedirectToAction(
             "Index",
             "Restaurant",
+            new { id = restaurantId, cartOpen = true });
+    }
+
+    // Beregner ventetid med en midlertidig teststation.
+    private int CalculateEstimatedWaitMinutes(
+        List<CartItem> cart,
+        int restaurantId)
+    {
+        if (!cart.Any())
+            return 0;
+
+        var restaurant =
+            _restaurantApiClient.GetRestaurantMenuById(restaurantId);
+
+        if (restaurant == null)
+            return 0;
+
+        var foodItems = restaurant.Menus
+            .Where(menu => menu.IsActive)
+            .SelectMany(menu => menu.Categories)
+            .SelectMany(category => category.FoodItems)
+            .ToList();
+
+        var order = new Order
+        {
+            CreatedAt = DateTime.Now,
+            OrderStatus = "Cart",
+            OrderType = "Pickup"
+        };
+
+        foreach (var cartItem in cart)
+        {
+            var foodItem = foodItems.FirstOrDefault(
+                item => item.FoodItemId == cartItem.FoodItemId);
+
+            if (foodItem == null)
+                continue;
+
+            order.OrderLines.Add(new OrderLine
+            {
+                Order = order,
+                FoodItemId = foodItem.FoodItemId,
+                FoodItem = foodItem,
+                Quantity = cartItem.Quantity,
+                UnitPrice = cartItem.UnitPrice,
+                SubTotal = cartItem.SubTotal
+            });
+        }
+
+        if (!order.OrderLines.Any())
+            return 0;
+
+        // Midlertidig teststation.
+        var station = new KitchenStation
+        {
+            Name = "Testkøkken",
+            CapacityPerInterval = 3,
+            IntervalMinutes = 10
+        };
+
+        // Opret 12 ledige tidsintervaller.
+        station.CapacitySlots = Enumerable.Range(0, 12)
+            .Select(i => new StationCapacitySlot
+            {
+                SlotId = i + 1,
+                StartTime = order.CreatedAt.AddMinutes(
+                    i * station.IntervalMinutes),
+                ReservedQuantity = 0
+            })
+            .ToList();
+
+        var readyTime = _pickupTimeService
+            .CalculateEstimatedReadyTime(order, station);
+
+        return Math.Max(
+            0,
+            (int)Math.Ceiling(
+                (readyTime - DateTime.Now).TotalMinutes));
     }
 }

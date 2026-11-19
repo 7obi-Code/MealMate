@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\APIClient\APIClient.csproj" />
+    <ProjectReference Include="..\BusinessLogic.Tests\BusinessLogic.Tests.csproj" />
     <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
   </ItemGroup>
 

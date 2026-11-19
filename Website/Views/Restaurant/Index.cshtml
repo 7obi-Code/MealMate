@@ -30,6 +30,7 @@
     var cartCount = cart.Sum(item => item.Quantity);
     var cartTotal = cart.Sum(item => item.SubTotal);
     var cartOpen = Context.Request.Query["cartOpen"] == "true";
+    var estimatedWaitMinutes = Context.Session.GetInt32("MealMateEstimatedWaitMinutes") ?? 0;
 }
 
 <div class="home-background"></div>
@@ -374,6 +375,13 @@
     </div>
 
     <div class="cart-footer">
+        @if (cart.Any() && estimatedWaitMinutes > 0)
+        {
+            <div class="cart-ingredients">
+                <strong>⏱ Forventet ventetid:</strong>
+                <span>Ca. @estimatedWaitMinutes minutter</span>
+            </div>
+        }
         <div class="cart-total">
             <span>Total</span>
             <strong id="cartTotal">
